@@ -1,0 +1,3172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eastlands International School — Inter-Class PNG Math Competition</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --eis-navy: #1B2452;
+      --eis-navy-light: #2b3980;
+      --eis-red: #D9383A;
+      --eis-red-dark: #b52729;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: #0f172a;
+      margin: 0;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    @media (min-width: 1120px) and (min-height: 700px) {
+      body.desktop-fit {
+        height: 100dvh;
+        overflow: hidden;
+      }
+    }
+
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Fortune Wheel Container */
+    .wheel-stage {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+    }
+    .wheel-canvas {
+      border-radius: 9999px;
+      box-shadow: 0 10px 25px -5px rgba(27, 36, 82, 0.25), 0 0 0 5px #ffffff, 0 0 0 8px #cbd5e1;
+      display: block;
+    }
+    .wheel-pointer {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.35));
+      pointer-events: none;
+    }
+
+    /* Animations */
+    @keyframes popIn {
+      0% { transform: scale(0.92); opacity: 0; }
+      70% { transform: scale(1.03); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop-in {
+      animation: popIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes scoreBump {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.28); }
+      100% { transform: scale(1); }
+    }
+    .animate-score {
+      animation: scoreBump 0.45s ease-out;
+    }
+
+    @keyframes wobble {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(5px); }
+    }
+    .animate-wobble {
+      animation: wobble 0.42s ease-in-out;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(0.8); opacity: 1; }
+      100% { transform: translateY(-65px) scale(1.15); opacity: 0; }
+    }
+    .animate-float-up {
+      animation: floatUp 1.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes urgentPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(217, 56, 58, 0.5); }
+      50% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(217, 56, 58, 0); }
+    }
+    .animate-urgent {
+      animation: urgentPulse 0.9s infinite ease-in-out;
+    }
+
+    .dropzone-active {
+      border-color: #1B2452 !important;
+      background-color: #eef2ff !important;
+    }
+  </style>
+</head>
+<body class="desktop-fit flex flex-col">
+
+  <!-- Confetti Canvas Overlay -->
+  <canvas id="confettiCanvas" class="fixed inset-0 pointer-events-none z-[120]"></canvas>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-[110] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ==================== TOP BRANDING HEADER ==================== -->
+  <header class="bg-white border-b-4 border-[#1B2452] shadow-sm shrink-0 z-20">
+    <div class="max-w-[1750px] mx-auto px-3 sm:px-5 py-2 flex flex-wrap items-center justify-between gap-2">
+      
+      <!-- Left: Eastlands International School Logo & Title -->
+      <div class="flex items-center gap-3">
+        <div class="relative flex items-center justify-center bg-white rounded-xl p-1 border border-slate-200 shadow-xs shrink-0">
+          <img
+            id="schoolLogoImg"
+            src="image_8a5df4.png"
+            alt="Eastlands International School Logo"
+            class="h-11 sm:h-12 w-auto object-contain rounded-lg"
+            onerror="handleLogoFallback(this)"
+          />
+          <!-- Vector Compass Shield Fallback matching Eastlands International School -->
+          <div id="schoolLogoFallback" class="hidden items-center gap-1.5 px-1.5 py-0.5">
+            <svg width="36" height="40" viewBox="0 0 100 112" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M50 4C28 4 12 14 12 14V54C12 82 50 106 50 106C50 106 88 82 88 54V14C88 14 72 4 50 4Z" fill="#FFFFFF" stroke="#1B2452" stroke-width="6"/>
+              <circle cx="46" cy="52" r="26" stroke="#1B2452" stroke-width="3" stroke-dasharray="3 3"/>
+              <circle cx="46" cy="52" r="18" stroke="#D9383A" stroke-width="2.5"/>
+              <polygon points="46,16 52,46 82,46 54,56 46,88 38,56 14,52 38,46" fill="#1B2452"/>
+              <polygon points="46,46 82,46 54,56 46,52" fill="#D9383A"/>
+              <circle cx="46" cy="52" r="4" fill="#FFFFFF"/>
+              <text x="80" y="45" fill="#D9383A" font-family="Inter, sans-serif" font-weight="900" font-size="12">E</text>
+            </svg>
+            <div class="leading-tight">
+              <div class="text-[10px] font-black tracking-wider text-[#1B2452]">EASTLANDS</div>
+              <div class="text-[8px] font-bold tracking-widest text-[#D9383A]">INT. SCHOOL</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-[10px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full bg-[#1B2452] text-white">
+              Eastlands International School
+            </span>
+            <button onclick="openBankModal()" id="bankCountBadge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-200 transition cursor-pointer">
+              PNG Bank: 0 Qs (Saved)
+            </button>
+            <span id="storageStatusBadge" class="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200" title="Persisted in IndexedDB + LocalStorage for GitHub Pages">
+              💾 IndexedDB Synced
+            </span>
+          </div>
+          <h1 class="text-sm sm:text-lg lg:text-xl font-black text-[#1B2452] tracking-tight leading-tight mt-0.5">
+            Inter-Class Mathematics Competition (PNG Arena)
+          </h1>
+        </div>
+      </div>
+
+      <!-- Right: Teacher Action Controls -->
+      <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        <button onclick="openAddPngModal('single')" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-extrabold bg-[#1B2452] hover:bg-[#2b3980] text-white shadow-xs transition">
+          <span>🖼️</span>
+          <span>+ Add PNG Question</span>
+        </button>
+
+        <button onclick="openAddPngModal('batch')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-[#1B2452] border border-indigo-200 transition">
+          <span>📚</span>
+          <span class="hidden sm:inline">Batch PNGs</span>
+        </button>
+
+        <button onclick="openBankModal()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition">
+          <span>🗂️</span>
+          <span>PNG Bank</span>
+        </button>
+
+        <label class="cursor-pointer inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition" title="Upload Custom School Logo PNG">
+          <span>🏫</span>
+          <span class="hidden md:inline">Logo</span>
+          <input type="file" accept="image/*" class="sr-only" onchange="uploadCustomLogo(event)" />
+        </label>
+
+        <button id="soundToggleBtn" onclick="toggleSound()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition">
+          <span id="soundIcon">🔊</span>
+          <span id="soundLabel" class="hidden sm:inline">Audio</span>
+        </button>
+
+        <button onclick="openResetModal()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-red-50 hover:bg-red-100 text-[#D9383A] border border-red-200 transition">
+          <span>↺</span>
+          <span>Reset</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN WORKSPACE ==================== -->
+  <main class="flex-1 max-w-[1750px] w-full mx-auto px-3 sm:px-5 py-2.5 flex flex-col gap-2.5 min-h-0">
+
+    <!-- ============================================================ -->
+    <!-- SINGLE SHARED COMPETITION TIMER BAR                          -->
+    <!-- ============================================================ -->
+    <section id="sharedTimerSection" class="bg-slate-900 text-white rounded-2xl shadow-md border-2 border-slate-700 px-3 sm:px-5 py-2 shrink-0">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        
+        <!-- Left: Timer Status & Dual-Readiness Indicator -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-400/15 border border-amber-400/40 flex items-center justify-center text-xl shrink-0">
+            ⏱️
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-300">
+                Shared Round Timer
+              </span>
+              <span id="sharedTimerStatusPill" class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-slate-700 text-slate-200">
+                WAITING FOR BOTH PNG QUESTIONS
+              </span>
+            </div>
+            <div class="flex items-center gap-3 text-[11px] text-slate-300 mt-0.5">
+              <span id="readinessBadge-0" class="flex items-center gap-1 font-semibold">
+                <span class="w-2 h-2 rounded-full bg-slate-500"></span>
+                <span id="readinessLabel-0">Class 1: No PNG loaded</span>
+              </span>
+              <span class="text-slate-600">|</span>
+              <span id="readinessBadge-1" class="flex items-center gap-1 font-semibold">
+                <span class="w-2 h-2 rounded-full bg-slate-500"></span>
+                <span id="readinessLabel-1">Class 2: No PNG loaded</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center: Large Digital Shared Countdown -->
+        <div class="flex items-center gap-3 mx-auto sm:mx-0">
+          <div id="sharedTimerDisplay" class="font-mono-code text-3xl sm:text-4xl font-black tracking-tight px-4 py-1 rounded-xl bg-slate-950 border border-slate-700 text-emerald-400 tabular-nums">
+            01:00.0
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button id="sharedStartPauseBtn" onclick="toggleSharedTimer()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm shadow-xs transition flex items-center gap-1">
+              <span id="sharedStartIcon">▶</span>
+              <span id="sharedStartText">Start</span>
+            </button>
+            <button onclick="resetSharedTimer()" class="px-3 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs sm:text-sm transition">
+              ↺ Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Round Duration Presets & Custom Seconds -->
+        <div class="flex flex-wrap items-center gap-1.5">
+          <span class="text-[11px] font-bold text-slate-400 mr-1 hidden xl:inline">Round Time:</span>
+          <button onclick="setSharedTimerDuration(30)" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold transition">30s</button>
+          <button onclick="setSharedTimerDuration(45)" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold transition">45s</button>
+          <button onclick="setSharedTimerDuration(60)" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold transition">60s</button>
+          <button onclick="setSharedTimerDuration(90)" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold transition">90s</button>
+          <button onclick="setSharedTimerDuration(120)" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold transition">120s</button>
+          <div class="flex items-center gap-1 bg-slate-800 border border-slate-600 rounded-lg px-1.5 py-0.5">
+            <input id="customRoundSeconds" type="number" min="5" max="900" value="60" class="w-11 bg-slate-950 text-white text-center text-xs font-bold rounded py-0.5 outline-none" title="Custom round duration in seconds" />
+            <span class="text-[10px] text-slate-400 font-bold">s</span>
+            <button onclick="applyCustomSharedDuration()" class="px-1.5 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-[11px] font-extrabold">Set</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- DUAL CLASS ARENAS (LEFT = CLASS 1, RIGHT = CLASS 2)          -->
+    <!-- ============================================================ -->
+    <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">
+
+      <!-- ==================== CLASS 1 ARENA ==================== -->
+      <section id="arena-0" class="bg-white rounded-3xl shadow-md border-2 border-[#1B2452]/25 flex flex-col min-h-0 overflow-hidden">
+        
+        <!-- Class 1 Scoreboard Header -->
+        <div class="bg-gradient-to-r from-[#1B2452] to-[#2b3980] text-white px-4 py-2 flex items-center justify-between gap-2 shrink-0">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="w-8 h-8 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center font-black text-sm shrink-0">1</span>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <input
+                  id="className-0"
+                  type="text"
+                  value="Class 1"
+                  onchange="updateClassName(0, this.value)"
+                  onblur="updateClassName(0, this.value)"
+                  class="bg-white/10 hover:bg-white/20 focus:bg-white focus:text-[#1B2452] text-white font-black text-base sm:text-lg px-2 py-0.5 rounded-lg border border-white/25 outline-none transition w-36 sm:w-44 truncate"
+                  title="Click to edit Class 1 name"
+                />
+                <span class="text-xs text-blue-200 hidden sm:inline" title="Editable class name">✎</span>
+              </div>
+              <div class="text-[11px] text-blue-200 font-medium mt-0.5">
+                Solved: <strong id="solvedCount-0" class="text-white">0</strong> &bull; Wheel: <strong id="wheelCount-0" class="text-amber-300">0</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scoreboard Display -->
+          <div class="relative flex items-center gap-2 bg-black/25 px-3 py-1.5 rounded-2xl border border-white/15 shrink-0">
+            <div id="scoreFloatAnchor-0" class="absolute -top-2 right-6 pointer-events-none"></div>
+            <div class="text-right">
+              <div class="text-[9px] uppercase tracking-widest text-blue-200 font-bold">Score</div>
+              <div id="scoreDisplay-0" class="text-2xl sm:text-3xl font-black text-amber-300 tabular-nums leading-none">0</div>
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <button onclick="adjustScore(0, 10)" class="px-1.5 py-0.5 rounded bg-emerald-500/85 hover:bg-emerald-500 text-white text-[10px] font-extrabold transition" title="Add 10 points">+10</button>
+              <button onclick="adjustScore(0, -10)" class="px-1.5 py-0.5 rounded bg-rose-500/85 hover:bg-rose-500 text-white text-[10px] font-extrabold transition" title="Subtract 10 points">-10</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Class 1 Body: Split Empty Wheel & PNG Question Card -->
+        <div class="flex-1 p-3 grid grid-cols-1 sm:grid-cols-12 gap-3 min-h-0 overflow-y-auto lg:overflow-hidden">
+          
+          <!-- Left Column: Empty Fortune Wheel + Quick Student Controls -->
+          <div class="sm:col-span-5 bg-slate-50 rounded-2xl p-2.5 border border-slate-200 flex flex-col justify-between min-h-0 relative">
+            
+            <!-- Roster Header & Toggle -->
+            <div class="flex items-center justify-between gap-1 mb-1">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#1B2452]">🎡 Student Wheel</span>
+              <button onclick="toggleRosterDrawer(0)" class="text-[11px] font-bold px-2 py-0.5 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-[#1B2452] transition">
+                📋 Roster (<span id="rosterBadgeCount-0">0</span>)
+              </button>
+            </div>
+
+            <!-- Expandable Roster Drawer Overlay -->
+            <div id="rosterDrawer-0" class="hidden absolute inset-2 z-30 bg-white rounded-2xl shadow-xl border-2 border-[#1B2452] p-3 flex flex-col gap-2 animate-pop-in">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                <span class="text-xs font-black text-[#1B2452]" id="rosterDrawerTitle-0">Class 1 Student Roster</span>
+                <button onclick="toggleRosterDrawer(0)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-sm">&times;</button>
+              </div>
+              <textarea
+                id="bulkStudentInput-0"
+                rows="3"
+                placeholder="Paste or type student names separated by commas or new lines..."
+                class="w-full rounded-xl border border-slate-300 p-2 text-xs focus:border-[#1B2452] outline-none resize-none"
+              ></textarea>
+              <div class="flex items-center gap-1.5">
+                <button onclick="addBulkStudents(0)" class="flex-1 py-1.5 rounded-xl bg-[#1B2452] hover:bg-[#2b3980] text-white text-xs font-extrabold transition">
+                  + Add Names
+                </button>
+                <button onclick="restoreRemovedStudents(0)" class="px-2.5 py-1.5 rounded-xl bg-indigo-100 hover:bg-indigo-200 text-[#1B2452] text-xs font-bold transition" title="Restore spun students">
+                  ↺ Restore (<span id="removedCount-0">0</span>)
+                </button>
+                <button onclick="clearClassRoster(0)" class="px-2.5 py-1.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-bold transition">
+                  Clear
+                </button>
+              </div>
+              <div id="studentChips-0" class="flex-1 overflow-y-auto flex flex-wrap content-start gap-1 pt-1 border-t border-slate-100"></div>
+            </div>
+
+            <!-- Canvas Wheel -->
+            <div id="wheelContainer-0" class="flex-1 flex items-center justify-center min-h-[155px] my-1">
+              <div class="wheel-stage" id="wheelStage-0">
+                <div class="wheel-pointer">
+                  <svg width="28" height="28" viewBox="0 0 36 36">
+                    <polygon points="18,34 4,6 32,6" fill="#D9383A" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <canvas id="wheelCanvas-0" class="wheel-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- Spin Button & Active Student Spotlight -->
+            <div class="flex flex-col gap-1.5">
+              <button
+                id="spinBtn-0"
+                onclick="spinWheel(0)"
+                class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-[#1B2452] to-[#2e3d8f] hover:opacity-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs sm:text-sm shadow-sm transition transform active:scale-95"
+              >
+                🎡 SPIN <span id="spinBtnLabel-0">CLASS 1</span>
+              </button>
+
+              <div id="selectedBanner-0" class="rounded-xl bg-white border border-dashed border-slate-300 px-2.5 py-1.5 text-center">
+                <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">Selected Student</span>
+                <span id="selectedStudentName-0" class="text-xs sm:text-sm font-black text-slate-400 truncate block">Empty wheel — add names below</span>
+              </div>
+
+              <!-- Quick Inline Add Student Input -->
+              <div class="flex items-center gap-1">
+                <input
+                  id="quickStudentInput-0"
+                  type="text"
+                  placeholder="Add student name..."
+                  onkeydown="if(event.key==='Enter'){ event.preventDefault(); addQuickStudent(0); }"
+                  class="flex-1 min-w-0 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold outline-none focus:border-[#1B2452]"
+                />
+                <button onclick="addQuickStudent(0)" class="px-2.5 py-1 rounded-lg bg-[#1B2452] hover:bg-[#2b3980] text-white text-xs font-extrabold transition shrink-0">
+                  + Add
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: PNG Question Arena -->
+          <div class="sm:col-span-7 bg-white rounded-2xl border-2 border-slate-200 flex flex-col min-h-0 overflow-hidden">
+            
+            <!-- Category Filter & Point Tier Buttons -->
+            <div class="bg-slate-100 px-3 py-2 border-b border-slate-200 flex flex-col gap-1.5 shrink-0">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#1B2452] shrink-0">Category:</span>
+                <select id="topicSelect-0" class="flex-1 min-w-0 text-xs font-bold bg-white border border-slate-300 rounded-lg px-2 py-1 text-slate-800 outline-none focus:border-[#1B2452]">
+                  <option value="ALL">All PNG Questions</option>
+                </select>
+              </div>
+
+              <div class="grid grid-cols-3 gap-1.5">
+                <button onclick="selectPngQuestion(0, 10)" class="py-1.5 px-2 rounded-xl text-[11px] font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition transform active:scale-95">
+                  Easy &bull; 10 <span id="tierCount-0-10" class="opacity-85">(0)</span>
+                </button>
+                <button onclick="selectPngQuestion(0, 20)" class="py-1.5 px-2 rounded-xl text-[11px] font-extrabold bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition transform active:scale-95">
+                  Medium &bull; 20 <span id="tierCount-0-20" class="opacity-85">(0)</span>
+                </button>
+                <button onclick="selectPngQuestion(0, 30)" class="py-1.5 px-2 rounded-xl text-[11px] font-extrabold bg-[#D9383A] hover:bg-[#b52729] text-white shadow-xs transition transform active:scale-95">
+                  Hard &bull; 30 <span id="tierCount-0-30" class="opacity-85">(0)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- PNG Question Display Area -->
+            <div id="questionArea-0" class="p-3 flex-1 flex flex-col justify-between overflow-y-auto min-h-[230px]"></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ==================== CLASS 2 ARENA ==================== -->
+      <section id="arena-1" class="bg-white rounded-3xl shadow-md border-2 border-[#D9383A]/25 flex flex-col min-h-0 overflow-hidden">
+        
+        <!-- Class 2 Scoreboard Header -->
+        <div class="bg-gradient-to-r from-[#b8282a] to-[#D9383A] text-white px-4 py-2 flex items-center justify-between gap-2 shrink-0">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="w-8 h-8 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center font-black text-sm shrink-0">2</span>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <input
+                  id="className-1"
+                  type="text"
+                  value="Class 2"
+                  onchange="updateClassName(1, this.value)"
+                  onblur="updateClassName(1, this.value)"
+                  class="bg-white/10 hover:bg-white/20 focus:bg-white focus:text-[#D9383A] text-white font-black text-base sm:text-lg px-2 py-0.5 rounded-lg border border-white/25 outline-none transition w-36 sm:w-44 truncate"
+                  title="Click to edit Class 2 name"
+                />
+                <span class="text-xs text-red-100 hidden sm:inline" title="Editable class name">✎</span>
+              </div>
+              <div class="text-[11px] text-red-100 font-medium mt-0.5">
+                Solved: <strong id="solvedCount-1" class="text-white">0</strong> &bull; Wheel: <strong id="wheelCount-1" class="text-amber-200">0</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scoreboard Display -->
+          <div class="relative flex items-center gap-2 bg-black/25 px-3 py-1.5 rounded-2xl border border-white/15 shrink-0">
+            <div id="scoreFloatAnchor-1" class="absolute -top-2 right-6 pointer-events-none"></div>
+            <div class="text-right">
+              <div class="text-[9px] uppercase tracking-widest text-red-100 font-bold">Score</div>
+              <div id="scoreDisplay-1" class="text-2xl sm:text-3xl font-black text-amber-200 tabular-nums leading-none">0</div>
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <button onclick="adjustScore(1, 10)" class="px-1.5 py-0.5 rounded bg-emerald-500/85 hover:bg-emerald-500 text-white text-[10px] font-extrabold transition" title="Add 10 points">+10</button>
+              <button onclick="adjustScore(1, -10)" class="px-1.5 py-0.5 rounded bg-slate-800/85 hover:bg-slate-800 text-white text-[10px] font-extrabold transition" title="Subtract 10 points">-10</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Class 2 Body: Split Empty Wheel & PNG Question Card -->
+        <div class="flex-1 p-3 grid grid-cols-1 sm:grid-cols-12 gap-3 min-h-0 overflow-y-auto lg:overflow-hidden">
+          
+          <!-- Left Column: Empty Fortune Wheel + Quick Student Controls -->
+          <div class="sm:col-span-5 bg-slate-50 rounded-2xl p-2.5 border border-slate-200 flex flex-col justify-between min-h-0 relative">
+            
+            <!-- Roster Header & Toggle -->
+            <div class="flex items-center justify-between gap-1 mb-1">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#D9383A]">🎡 Student Wheel</span>
+              <button onclick="toggleRosterDrawer(1)" class="text-[11px] font-bold px-2 py-0.5 rounded-lg bg-red-100 hover:bg-red-200 text-[#b52729] transition">
+                📋 Roster (<span id="rosterBadgeCount-1">0</span>)
+              </button>
+            </div>
+
+            <!-- Expandable Roster Drawer Overlay -->
+            <div id="rosterDrawer-1" class="hidden absolute inset-2 z-30 bg-white rounded-2xl shadow-xl border-2 border-[#D9383A] p-3 flex flex-col gap-2 animate-pop-in">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                <span class="text-xs font-black text-[#D9383A]" id="rosterDrawerTitle-1">Class 2 Student Roster</span>
+                <button onclick="toggleRosterDrawer(1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-sm">&times;</button>
+              </div>
+              <textarea
+                id="bulkStudentInput-1"
+                rows="3"
+                placeholder="Paste or type student names separated by commas or new lines..."
+                class="w-full rounded-xl border border-slate-300 p-2 text-xs focus:border-[#D9383A] outline-none resize-none"
+              ></textarea>
+              <div class="flex items-center gap-1.5">
+                <button onclick="addBulkStudents(1)" class="flex-1 py-1.5 rounded-xl bg-[#D9383A] hover:bg-[#b52729] text-white text-xs font-extrabold transition">
+                  + Add Names
+                </button>
+                <button onclick="restoreRemovedStudents(1)" class="px-2.5 py-1.5 rounded-xl bg-red-100 hover:bg-red-200 text-[#b52729] text-xs font-bold transition" title="Restore spun students">
+                  ↺ Restore (<span id="removedCount-1">0</span>)
+                </button>
+                <button onclick="clearClassRoster(1)" class="px-2.5 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition">
+                  Clear
+                </button>
+              </div>
+              <div id="studentChips-1" class="flex-1 overflow-y-auto flex flex-wrap content-start gap-1 pt-1 border-t border-slate-100"></div>
+            </div>
+
+            <!-- Canvas Wheel -->
+            <div id="wheelContainer-1" class="flex-1 flex items-center justify-center min-h-[155px] my-1">
+              <div class="wheel-stage" id="wheelStage-1">
+                <div class="wheel-pointer">
+                  <svg width="28" height="28" viewBox="0 0 36 36">
+                    <polygon points="18,34 4,6 32,6" fill="#1B2452" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <canvas id="wheelCanvas-1" class="wheel-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- Spin Button & Active Student Spotlight -->
+            <div class="flex flex-col gap-1.5">
+              <button
+                id="spinBtn-1"
+                onclick="spinWheel(1)"
+                class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-[#b8282a] to-[#D9383A] hover:opacity-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs sm:text-sm shadow-sm transition transform active:scale-95"
+              >
+                🎡 SPIN <span id="spinBtnLabel-1">CLASS 2</span>
+              </button>
+
+              <div id="selectedBanner-1" class="rounded-xl bg-white border border-dashed border-slate-300 px-2.5 py-1.5 text-center">
+                <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">Selected Student</span>
+                <span id="selectedStudentName-1" class="text-xs sm:text-sm font-black text-slate-400 truncate block">Empty wheel — add names below</span>
+              </div>
+
+              <!-- Quick Inline Add Student Input -->
+              <div class="flex items-center gap-1">
+                <input
+                  id="quickStudentInput-1"
+                  type="text"
+                  placeholder="Add student name..."
+                  onkeydown="if(event.key==='Enter'){ event.preventDefault(); addQuickStudent(1); }"
+                  class="flex-1 min-w-0 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold outline-none focus:border-[#D9383A]"
+                />
+                <button onclick="addQuickStudent(1)" class="px-2.5 py-1 rounded-lg bg-[#D9383A] hover:bg-[#b52729] text-white text-xs font-extrabold transition shrink-0">
+                  + Add
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: PNG Question Arena -->
+          <div class="sm:col-span-7 bg-white rounded-2xl border-2 border-slate-200 flex flex-col min-h-0 overflow-hidden">
+            
+            <!-- Category Filter & Point Tier Buttons -->
+            <div class="bg-slate-100 px-3 py-2 border-b border-slate-200 flex flex-col gap-1.5 shrink-0">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#D9383A] shrink-0">Category:</span>
+                <select id="topicSelect-1" class="flex-1 min-w-0 text-xs font-bold bg-white border border-slate-300 rounded-lg px-2 py-1 text-slate-800 outline-none focus:border-[#D9383A]">
+                  <option value="ALL">All PNG Questions</option>
+                </select>
+              </div>
+
+              <div class="grid grid-cols-3 gap-1.5">
+                <button onclick="selectPngQuestion(1, 10)" class="py-1.5 px-2 rounded-xl text-[11px] font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition transform active:scale-95">
+                  Easy &bull; 10 <span id="tierCount-1-10" class="opacity-85">(0)</span>
+                </button>
+                <button onclick="selectPngQuestion(1, 20)" class="py-1.5 px-2 rounded-xl text-[11px] font-extrabold bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition transform active:scale-95">
+                  Medium &bull; 20 <span id="tierCount-1-20" class="opacity-85">(0)</span>
+                </button>
+                <button onclick="selectPngQuestion(1, 30)" class="py-1.5 px-2 rounded-xl text-[11px] font-extrabold bg-[#D9383A] hover:bg-[#b52729] text-white shadow-xs transition transform active:scale-95">
+                  Hard &bull; 30 <span id="tierCount-1-30" class="opacity-85">(0)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- PNG Question Display Area -->
+            <div id="questionArea-1" class="p-3 flex-1 flex flex-col justify-between overflow-y-auto min-h-[230px]"></div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- STEAL THE POINTS POPUP MODAL (5s DECISION -> 30s STEAL COUNTDOWN)         -->
+  <!-- ========================================================================= -->
+  <div id="stealModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[85] hidden items-center justify-center p-4">
+    <div id="stealModalCard" class="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl border-4 border-amber-400 overflow-hidden animate-pop-in">
+      
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-[#1B2452] via-indigo-900 to-[#D9383A] text-white px-6 py-3.5 flex items-center justify-between gap-3 shrink-0">
+        <div>
+          <span id="stealPhaseBadge" class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-widest bg-amber-400 text-slate-950">
+            ⚡ STEAL OPPORTUNITY!
+          </span>
+          <h2 id="stealHeadline" class="text-lg sm:text-2xl font-black mt-1">
+            Does Class 2 want to STEAL?
+          </h2>
+        </div>
+
+        <!-- Big Live Countdown Badge (5.0s or 30.0s) -->
+        <div class="bg-slate-950/90 border-2 border-amber-400 rounded-2xl px-4 py-2 text-center shrink-0">
+          <div id="stealTimerLabel" class="text-[9px] font-extrabold uppercase tracking-widest text-amber-300">DECIDE IN</div>
+          <div id="stealCountdownDisplay" class="font-mono-code text-3xl sm:text-4xl font-black text-amber-400 tabular-nums leading-none mt-0.5">
+            5.0s
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 overflow-y-auto flex flex-col gap-3.5">
+        <!-- Context Banner -->
+        <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-100 rounded-2xl px-4 py-2 border border-slate-200">
+          <span id="stealMissedInfo" class="text-xs sm:text-sm font-bold text-slate-700">
+            Class 1 missed this PNG question!
+          </span>
+          <span id="stealPointsBadge" class="px-3 py-1 rounded-full text-xs font-black bg-amber-500 text-white shadow-xs">
+            WORTH 20 POINTS
+          </span>
+        </div>
+
+        <!-- PNG Question Preview in Steal Modal -->
+        <div class="bg-slate-50 rounded-2xl p-3 border-2 border-slate-200 flex flex-col items-center">
+          <div class="w-full flex items-center justify-between mb-1.5">
+            <span id="stealTopicLabel" class="text-[11px] font-extrabold uppercase tracking-wider text-indigo-700">
+              PNG Question
+            </span>
+            <button onclick="openZoomLightbox(stealState && stealState.question ? stealState.question.imageData : '')" class="text-[11px] font-bold px-2 py-0.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800">
+              🔍 Zoom PNG
+            </button>
+          </div>
+          <img id="stealQuestionPng" src="" alt="Steal Question PNG" class="max-h-56 w-auto max-w-full object-contain rounded-xl bg-white border border-slate-200 p-1" />
+        </div>
+
+        <!-- PHASE 1 CONTROLS: 5-Second Decision -->
+        <div id="stealDecisionControls" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <button
+            onclick="acceptStealOpportunity()"
+            class="py-3.5 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-base shadow-lg shadow-emerald-900/20 transform active:scale-95 transition flex items-center justify-center gap-2 animate-urgent"
+          >
+            <span>⚡ YES, STEAL! (30s)</span>
+          </button>
+          <button
+            onclick="declineStealOpportunity(false)"
+            class="py-3.5 px-5 rounded-2xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold text-base transition flex items-center justify-center gap-2"
+          >
+            <span>❌ Pass / No Steal</span>
+          </button>
+        </div>
+
+        <!-- PHASE 2 CONTROLS: 30-Second Active Steal Attempt -->
+        <div id="stealAttemptControls" class="hidden flex-col gap-3 pt-1">
+          <!-- Student Answer Input for Stealing Team -->
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input
+              id="stealAnswerInput"
+              type="text"
+              onkeydown="if(event.key==='Enter'){ event.preventDefault(); verifyStealTypedAnswer(); }"
+              placeholder="Type stealing team's answer..."
+              class="flex-1 rounded-xl border-2 border-indigo-300 bg-white px-3.5 py-2.5 text-sm font-bold text-slate-900 outline-none focus:border-[#1B2452]"
+            />
+            <button
+              onclick="verifyStealTypedAnswer()"
+              class="px-4 py-2.5 rounded-xl bg-[#1B2452] hover:bg-[#2b3980] text-white text-xs sm:text-sm font-extrabold transition shrink-0"
+            >
+              Submit Steal Answer
+            </button>
+          </div>
+
+          <div id="stealAutoFeedback" class="hidden rounded-xl px-3 py-2 text-xs font-extrabold"></div>
+
+          <!-- Teacher Override / Confirmation Buttons -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200">
+            <button onclick="toggleStealOfficialAnswer()" id="stealRevealBtn" class="px-3 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold transition">
+              👁 Reveal Answer Key
+            </button>
+
+            <div class="flex items-center gap-2">
+              <button
+                onclick="resolveStealAttempt(false)"
+                class="px-4 py-2.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 font-extrabold text-xs sm:text-sm transition"
+              >
+                ✖ Steal Failed (0)
+              </button>
+              <button
+                id="stealConfirmWinBtn"
+                onclick="resolveStealAttempt(true)"
+                class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md transition"
+              >
+                ✔ Steal Correct (+20 Pts)
+              </button>
+            </div>
+          </div>
+
+          <div id="stealOfficialAnswerBox" class="hidden rounded-xl bg-emerald-50 border-2 border-emerald-400 px-4 py-2.5 text-sm font-bold text-emerald-950"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TEACHER "+ ADD PNG QUESTION" MODAL (SINGLE PNG + BATCH MULTI-PNG)         -->
+  <!-- ========================================================================= -->
+  <div id="addPngModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-[75] hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-pop-in">
+      <div class="bg-[#1B2452] text-white px-6 py-4 flex items-center justify-between shrink-0">
+        <div>
+          <h2 class="text-lg sm:text-xl font-black">🖼️ Add PNG Question (PNG-Only Bank)</h2>
+          <p class="text-xs text-blue-200">Saved permanently in browser IndexedDB + LocalStorage for your GitHub Pages site</p>
+        </div>
+        <button onclick="closeAddPngModal()" class="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 text-white font-black text-lg">&times;</button>
+      </div>
+
+      <!-- Mode Tabs -->
+      <div class="bg-slate-100 px-6 pt-3 border-b border-slate-200 flex gap-2 shrink-0">
+        <button id="tabSinglePng" onclick="switchPngBuilderTab('single')" class="px-4 py-2 rounded-t-xl bg-white text-[#1B2452] font-extrabold text-xs sm:text-sm border-t border-x border-slate-200">
+          Single PNG Upload / Paste
+        </button>
+        <button id="tabBatchPng" onclick="switchPngBuilderTab('batch')" class="px-4 py-2 rounded-t-xl bg-slate-200/70 text-slate-600 hover:text-slate-900 font-bold text-xs sm:text-sm">
+          Batch Upload Multiple PNGs
+        </button>
+      </div>
+
+      <!-- TAB 1: SINGLE PNG UPLOAD / DRAG / PASTE -->
+      <div id="singlePngPane" class="p-5 overflow-y-auto flex flex-col gap-3.5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1">Difficulty Tier &amp; Points</label>
+            <select id="singlePngPoints" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-800 outline-none focus:border-[#1B2452]">
+              <option value="10">Easy — 10 Points</option>
+              <option value="20">Medium — 20 Points</option>
+              <option value="30">Hard — 30 Points</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1">Category / Topic Tag (Optional)</label>
+            <input id="singlePngTopic" type="text" placeholder="e.g., Algebraic Expressions, Geometry..." value="General Mathematics" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-800 outline-none focus:border-[#1B2452]" />
+          </div>
+        </div>
+
+        <!-- PNG Dropzone / File Picker -->
+        <div
+          id="singlePngDropzone"
+          ondragover="handleDropzoneDragOver(event, 'singlePngDropzone')"
+          ondragleave="handleDropzoneDragLeave(event, 'singlePngDropzone')"
+          ondrop="handleSinglePngDrop(event)"
+          class="relative rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-indigo-50/40 transition p-4 text-center"
+        >
+          <div id="singlePngEmptyPrompt" class="py-4">
+            <div class="text-3xl mb-1.5">🖼️</div>
+            <p class="text-sm font-extrabold text-[#1B2452]">
+              Drag &amp; drop a PNG image here, press <kbd class="px-1.5 py-0.5 bg-white border border-slate-300 rounded text-xs">Ctrl+V</kbd> to paste a screenshot, or:
+            </p>
+            <label for="singlePngFileInput" class="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1B2452] hover:bg-[#2b3980] text-white text-xs sm:text-sm font-extrabold cursor-pointer shadow-xs transition">
+              <span>📂 Choose PNG File</span>
+            </label>
+            <input id="singlePngFileInput" type="file" accept="image/png,image/*" class="sr-only" onchange="handleSinglePngFileChange(event)" />
+          </div>
+
+          <div id="singlePngPreviewBox" class="hidden flex-col items-center gap-2">
+            <img id="singlePngPreviewImg" src="" alt="Preview PNG" class="max-h-52 w-auto max-w-full object-contain rounded-xl bg-white border border-slate-200 p-1.5 shadow-xs" />
+            <div class="flex items-center gap-2">
+              <span id="singlePngMetaText" class="text-[11px] font-bold text-slate-500"></span>
+              <label for="singlePngFileInput" class="px-2.5 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold cursor-pointer">
+                Replace PNG
+              </label>
+              <button type="button" onclick="clearSinglePngDraft()" class="px-2.5 py-1 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-bold">
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1">Official Answer Key</label>
+            <input id="singlePngAnswer" type="text" placeholder="e.g., 4x + 12 or 45" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold outline-none focus:border-[#1B2452]" />
+          </div>
+          <div>
+            <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1">Accepted Alternatives (Optional)</label>
+            <input id="singlePngAlts" type="text" placeholder="e.g., 12 + 4x, 4(x + 3)" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold outline-none focus:border-[#1B2452]" />
+          </div>
+        </div>
+
+        <div class="pt-2 flex flex-wrap items-center justify-end gap-2">
+          <button onclick="closeAddPngModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Cancel</button>
+          <button onclick="saveSinglePngQuestion(0)" class="px-4 py-2.5 rounded-xl bg-indigo-100 hover:bg-indigo-200 text-[#1B2452] font-extrabold text-xs sm:text-sm">
+            Save &amp; Load in Class 1
+          </button>
+          <button onclick="saveSinglePngQuestion(1)" class="px-4 py-2.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-[#D9383A] font-extrabold text-xs sm:text-sm">
+            Save &amp; Load in Class 2
+          </button>
+          <button onclick="saveSinglePngQuestion(null)" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-sm">
+            ✔ Save PNG to Bank
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 2: BATCH UPLOAD MULTIPLE PNGS -->
+      <div id="batchPngPane" class="hidden p-5 overflow-y-auto flex-col gap-3.5">
+        <div class="rounded-2xl border-2 border-dashed border-indigo-300 bg-indigo-50/50 p-4 text-center">
+          <p class="text-sm font-extrabold text-[#1B2452]">
+            Select multiple PNG question files at once, assign their difficulty (10 / 20 / 30) &amp; answer key, and save them all permanently!
+          </p>
+          <div class="mt-3 flex flex-wrap items-center justify-center gap-2">
+            <label for="batchPngFileInput" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1B2452] hover:bg-[#2b3980] text-white text-xs sm:text-sm font-extrabold cursor-pointer shadow-xs">
+              <span>📂 Select Multiple PNG Files</span>
+            </label>
+            <input id="batchPngFileInput" type="file" accept="image/png,image/*" multiple class="sr-only" onchange="handleBatchPngFilesChange(event)" />
+
+            <select id="batchDefaultTier" onchange="applyDefaultTierToBatch(this.value)" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-800">
+              <option value="10">Default Tier: Easy (10 Pts)</option>
+              <option value="20">Default Tier: Medium (20 Pts)</option>
+              <option value="30">Default Tier: Hard (30 Pts)</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="batchPngList" class="flex flex-col gap-2.5 max-h-72 overflow-y-auto">
+          <p class="text-center text-xs text-slate-400 py-6 font-semibold">No PNG files queued yet.</p>
+        </div>
+
+        <div class="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+          <span id="batchQueueCount" class="text-xs font-extrabold text-slate-600">0 PNGs ready</span>
+          <div class="flex items-center gap-2">
+            <button onclick="clearBatchQueue()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold">Clear Queue</button>
+            <button onclick="saveAllBatchPngQuestions()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-sm">
+              ✔ Save All PNGs to Bank
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- PNG QUESTION BANK BROWSER & GITHUB PAGES BACKUP MODAL                     -->
+  <!-- ========================================================================= -->
+  <div id="bankModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-[75] hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 animate-pop-in overflow-hidden">
+      <div class="bg-[#1B2452] text-white px-6 py-4 flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div>
+          <h2 class="text-lg sm:text-xl font-black">🗂️ Stored PNG Question Bank</h2>
+          <p id="bankStorageSummary" class="text-xs text-blue-200">
+            All PNGs are stored permanently in your browser's IndexedDB + LocalStorage
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="exportPngBankJSON()" class="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-extrabold transition" title="Download backup JSON of all PNG questions">
+            ⬇ Export Bank (.json)
+          </button>
+          <label class="cursor-pointer px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold transition" title="Restore PNG bank from a backup JSON file">
+            ⬆ Import Bank (.json)
+            <input type="file" accept=".json" class="sr-only" onchange="importPngBankJSON(event)" />
+          </label>
+          <button onclick="closeBankModal()" class="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 text-white font-black text-lg">&times;</button>
+        </div>
+      </div>
+
+      <!-- Filter & Search Bar -->
+      <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 flex flex-wrap items-center gap-2.5 shrink-0">
+        <select id="bankFilterTopic" onchange="renderBankList()" class="text-xs font-bold bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-800 outline-none">
+          <option value="ALL">All Categories</option>
+        </select>
+
+        <select id="bankFilterPoints" onchange="renderBankList()" class="text-xs font-bold bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-800 outline-none">
+          <option value="ALL">All Tiers (Easy 10 / Med 20 / Hard 30)</option>
+          <option value="10">Easy — 10 Points</option>
+          <option value="20">Medium — 20 Points</option>
+          <option value="30">Hard — 30 Points</option>
+        </select>
+
+        <input
+          id="bankSearchInput"
+          type="text"
+          oninput="renderBankList()"
+          placeholder="Search answer key or category..."
+          class="flex-1 min-w-[160px] text-xs font-semibold bg-white border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#1B2452]"
+        />
+
+        <span id="bankFilteredCount" class="text-xs font-extrabold text-slate-500">0 PNGs</span>
+      </div>
+
+      <!-- Bulk Delete Toolbar -->
+      <div class="bg-white px-6 py-2 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
+        <label class="inline-flex items-center gap-2 font-bold text-slate-700 cursor-pointer">
+          <input id="bankSelectAllCheckbox" type="checkbox" onchange="toggleSelectAllFiltered(this.checked)" class="w-4 h-4 accent-[#1B2452] rounded" />
+          <span>Select All Filtered</span>
+        </label>
+
+        <div class="flex items-center gap-2">
+          <button id="bulkDeleteBtn" onclick="deleteSelectedBankQuestions()" class="hidden px-3 py-1 rounded-lg bg-[#D9383A] hover:bg-[#b52729] text-white font-extrabold transition">
+            🗑️ Delete Selected (<span id="selectedBankCount">0</span>)
+          </button>
+        </div>
+      </div>
+
+      <!-- PNG Grid List -->
+      <div id="bankListContainer" class="p-5 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 content-start"></div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- FULLSCREEN CLASSROOM PNG ZOOM LIGHTBOX                                    -->
+  <!-- ========================================================================= -->
+  <div id="zoomLightboxModal" onclick="closeZoomLightbox()" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[95] hidden items-center justify-center p-4">
+    <div onclick="event.stopPropagation()" class="relative max-w-5xl w-full max-h-[92vh] flex flex-col items-center gap-3 animate-pop-in">
+      <div class="w-full flex items-center justify-between text-white px-2">
+        <span class="text-sm font-black uppercase tracking-wider text-amber-300">🔍 Classroom Fullscreen PNG View</span>
+        <button onclick="closeZoomLightbox()" class="px-4 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-extrabold text-sm">
+          ✕ Close Zoom
+        </button>
+      </div>
+      <div class="bg-white rounded-3xl p-3 shadow-2xl max-h-[82vh] overflow-auto flex items-center justify-center">
+        <img id="zoomLightboxImg" src="" alt="Zoomed PNG Question" class="max-w-full max-h-[76vh] object-contain rounded-xl" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- RESET MATCH MODAL                                                         -->
+  <!-- ========================================================================= -->
+  <div id="resetModal" class="fixed inset-0 bg-slate-900/65 backdrop-blur-sm z-[90] hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-pop-in">
+      <h2 class="text-xl font-black text-[#1B2452]">Reset Competition Match?</h2>
+      <p class="text-sm text-slate-600 mt-2">
+        Your saved PNG Question Bank remains safely stored in IndexedDB/LocalStorage. Choose what to reset for the current match:
+      </p>
+      <div class="mt-5 flex flex-col gap-2.5">
+        <button onclick="executeReset(false)" class="w-full py-2.5 px-4 rounded-xl bg-[#1B2452] hover:bg-[#2b3980] text-white font-bold text-sm transition">
+          Reset Scores, Timer &amp; Restore Spun Students
+        </button>
+        <button onclick="executeReset(true)" class="w-full py-2.5 px-4 rounded-xl bg-[#D9383A] hover:bg-[#b52729] text-white font-bold text-sm transition">
+          Full Match Reset (Empty Both Wheels, Timer &amp; Scores)
+        </button>
+        <button onclick="closeResetModal()" class="w-full py-2 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT APPLICATION ENGINE ==================== -->
+  <script>
+    // =========================================================================
+    // DUAL PERSISTENT STORAGE ENGINE (INDEXEDDB + LOCALSTORAGE FOR GITHUB PAGES)
+    // =========================================================================
+    // IndexedDB stores hundreds of megabytes of PNG data URLs persistently on your
+    // GitHub Pages domain without hitting the 5MB localStorage quota, while
+    // localStorage mirrors metadata, settings, class names, scores, and small banks.
+    const LS_META_KEY = "EIS_PNG_SHOWDOWN_META_V1";
+    const LS_LOGO_KEY = "EIS_SCHOOL_LOGO_PNG_V1";
+    const IDB_NAME = "EIS_PNG_COMPETITION_DB";
+    const IDB_VERSION = 1;
+    const IDB_STORE = "pngQuestions";
+
+    const DEFAULT_STATE = {
+      soundEnabled: true,
+      usedQuestionIds: [],
+      selectedBankIds: [],
+      pngQuestions: [], // Starts completely empty; zero text questions!
+      sharedTimer: {
+        durationSec: 60,
+        remainingMs: 60000,
+        running: false
+      },
+      classes: [
+        {
+          name: "Class 1",
+          score: 0,
+          solved: 0,
+          students: [], // Starts empty as requested
+          removedStudents: [],
+          selectedStudent: null,
+          currentQuestion: null,
+          answerRevealed: false,
+          studentAnswerDraft: "",
+          wheelAngle: 0
+        },
+        {
+          name: "Class 2",
+          score: 0,
+          solved: 0,
+          students: [], // Starts empty as requested
+          removedStudents: [],
+          selectedStudent: null,
+          currentQuestion: null,
+          answerRevealed: false,
+          studentAnswerDraft: "",
+          wheelAngle: 0
+        }
+      ]
+    };
+
+    let appState = loadMetaFromLocalStorage();
+    let isSpinning = [false, false];
+
+    // Single PNG Draft & Batch PNG Queue
+    let singlePngDraftDataUrl = "";
+    let batchPngDraftQueue = [];
+
+    // Shared Timer Loop Variables
+    let sharedTimerInterval = null;
+    let sharedLastTick = null;
+    let lastSharedLowBeepSec = null;
+
+    // Steal Modal State
+    let stealState = null;
+    let stealInterval = null;
+    let stealLastTick = null;
+    let lastStealBeepSec = null;
+
+    const WHEEL_PALETTES = [
+      ["#1B2452", "#2563EB", "#0D9488", "#D97706", "#4F46E5", "#0284C7", "#7C3AED", "#059669"],
+      ["#D9383A", "#E11D48", "#D97706", "#1B2452", "#9333EA", "#EA580C", "#0F766E", "#BE123C"]
+    ];
+
+    function openIdbDatabase() {
+      return new Promise((resolve, reject) => {
+        if (!("indexedDB" in window)) {
+          reject(new Error("IndexedDB not supported"));
+          return;
+        }
+        const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+        req.onupgradeneeded = function(e) {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(IDB_STORE)) {
+            db.createObjectStore(IDB_STORE, { keyPath: "id" });
+          }
+        };
+        req.onsuccess = function(e) {
+          resolve(e.target.result);
+        };
+        req.onerror = function(e) {
+          reject(e.target.error);
+        };
+      });
+    }
+
+    async function loadAllPngQuestionsFromIdb() {
+      try {
+        const db = await openIdbDatabase();
+        return await new Promise((resolve, reject) => {
+          const tx = db.transaction(IDB_STORE, "readonly");
+          const store = tx.objectStore(IDB_STORE);
+          const req = store.getAll();
+          req.onsuccess = () => {
+            const list = req.result || [];
+            // Sort newest first by createdAt
+            list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            resolve(list);
+          };
+          req.onerror = () => reject(req.error);
+        });
+      } catch (err) {
+        console.warn("IndexedDB load fallback to localStorage:", err);
+        return appState.pngQuestions || [];
+      }
+    }
+
+    async function syncAllPngQuestionsToIdb(questionsList) {
+      try {
+        const db = await openIdbDatabase();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(IDB_STORE, "readwrite");
+          const store = tx.objectStore(IDB_STORE);
+          const clearReq = store.clear();
+          clearReq.onsuccess = () => {
+            questionsList.forEach(item => {
+              store.put(item);
+            });
+          };
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+        updateStorageStatusBadge(true);
+      } catch (err) {
+        console.warn("IndexedDB save warning:", err);
+        updateStorageStatusBadge(false);
+      }
+    }
+
+    function loadMetaFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(LS_META_KEY);
+        if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
+        const parsed = JSON.parse(raw);
+        const merged = {
+          ...JSON.parse(JSON.stringify(DEFAULT_STATE)),
+          ...parsed
+        };
+        if (merged.sharedTimer) merged.sharedTimer.running = false;
+        return merged;
+      } catch (e) {
+        return JSON.parse(JSON.stringify(DEFAULT_STATE));
+      }
+    }
+
+    function saveAllState() {
+      // 1. Save full PNG question objects into IndexedDB (unlimited capacity for PNGs)
+      syncAllPngQuestionsToIdb(appState.pngQuestions || []);
+
+      // 2. Also persist state (and mirror pngQuestions if within localStorage quota)
+      try {
+        localStorage.setItem(LS_META_KEY, JSON.stringify(appState));
+      } catch (e) {
+        // If localStorage 5MB quota is exceeded by large PNGs, save metadata + active questions without full bank mirror
+        try {
+          const slimState = {
+            ...appState,
+            pngQuestions: [] // Stored safely in IndexedDB!
+          };
+          localStorage.setItem(LS_META_KEY, JSON.stringify(slimState));
+        } catch (innerErr) {
+          console.warn("LocalStorage slim save warning:", innerErr);
+        }
+      }
+    }
+
+    function updateStorageStatusBadge(idbOk) {
+      const el = document.getElementById("storageStatusBadge");
+      if (!el) return;
+      if (idbOk) {
+        el.textContent = "💾 Saved in Browser Storage";
+        el.className = "hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200";
+      } else {
+        el.textContent = "💾 LocalStorage Active";
+      }
+    }
+
+    // =========================================================================
+    // PNG IMAGE OPTIMIZATION & READING PIPELINE
+    // =========================================================================
+    function processImageFileToCleanPng(file) {
+      return new Promise((resolve, reject) => {
+        if (!file || !file.type.startsWith("image/")) {
+          reject(new Error("Please select a valid PNG or image file."));
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = new Image();
+          img.onload = function() {
+            const maxDim = 1100;
+            let w = img.width;
+            let h = img.height;
+            if (w > maxDim || h > maxDim) {
+              if (w >= h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext("2d");
+            // Crisp white background so transparent PNGs always have high contrast
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+
+            const pngDataUrl = canvas.toDataURL("image/png");
+            resolve({
+              dataUrl: pngDataUrl,
+              width: w,
+              height: h,
+              name: file.name || "question.png"
+            });
+          };
+          img.onerror = () => reject(new Error("Could not decode PNG image."));
+          img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error("Could not read file."));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // =========================================================================
+    // INITIALIZATION
+    // =========================================================================
+    async function initApp() {
+      // Load saved school logo if customized
+      try {
+        const savedLogo = localStorage.getItem(LS_LOGO_KEY);
+        if (savedLogo) {
+          const img = document.getElementById("schoolLogoImg");
+          img.src = savedLogo;
+        }
+      } catch (e) {}
+
+      // Load all persisted PNG questions from IndexedDB
+      const idbQuestions = await loadAllPngQuestionsFromIdb();
+      if (idbQuestions && idbQuestions.length > 0) {
+        appState.pngQuestions = idbQuestions;
+      }
+
+      syncSoundUI();
+      populateTopicDropdowns();
+      updateBankCountBadge();
+      updateTierBadges();
+
+      [0, 1].forEach(idx => {
+        const nameInput = document.getElementById(`className-${idx}`);
+        if (nameInput) nameInput.value = appState.classes[idx].name;
+        renderClassUI(idx);
+      });
+
+      document.getElementById("customRoundSeconds").value = appState.sharedTimer.durationSec;
+      renderSharedTimerUI();
+
+      // Paste Ctrl+V support when Add PNG modal is open
+      window.addEventListener("paste", async function(e) {
+        const modal = document.getElementById("addPngModal");
+        if (!modal || modal.classList.contains("hidden")) return;
+        const items = e.clipboardData && e.clipboardData.items;
+        if (!items) return;
+        for (const item of items) {
+          if (item.type.startsWith("image/")) {
+            const file = item.getAsFile();
+            if (file) {
+              try {
+                const processed = await processImageFileToCleanPng(file);
+                setSinglePngDraft(processed);
+                switchPngBuilderTab("single");
+                showToast("📋 Pasted PNG screenshot into question builder!", "success");
+              } catch (err) {
+                showToast(err.message, "error");
+              }
+            }
+            break;
+          }
+        }
+      });
+
+      // Responsive wheel observer
+      if ("ResizeObserver" in window) {
+        const ro = new ResizeObserver(() => {
+          fitAndDrawWheel(0);
+          fitAndDrawWheel(1);
+        });
+        [0, 1].forEach(idx => {
+          const el = document.getElementById(`wheelContainer-${idx}`);
+          if (el) ro.observe(el);
+        });
+      } else {
+        window.addEventListener("resize", () => {
+          fitAndDrawWheel(0);
+          fitAndDrawWheel(1);
+        });
+      }
+
+      setTimeout(() => {
+        fitAndDrawWheel(0);
+        fitAndDrawWheel(1);
+      }, 40);
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initApp);
+    } else {
+      initApp();
+    }
+
+    function populateTopicDropdowns() {
+      const bank = appState.pngQuestions || [];
+      const topics = [...new Set(bank.map(q => q.topic).filter(Boolean))];
+
+      [0, 1].forEach(idx => {
+        const sel = document.getElementById(`topicSelect-${idx}`);
+        if (!sel) return;
+        const prev = sel.value;
+        sel.innerHTML = `<option value="ALL">All PNG Questions (${bank.length})</option>`;
+        topics.forEach(t => {
+          const opt = document.createElement("option");
+          opt.value = t;
+          opt.textContent = t;
+          sel.appendChild(opt);
+        });
+        if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+      });
+
+      const bankFilterTopic = document.getElementById("bankFilterTopic");
+      if (bankFilterTopic) {
+        const prev = bankFilterTopic.value;
+        bankFilterTopic.innerHTML = `<option value="ALL">All Categories</option>`;
+        topics.forEach(t => {
+          const opt = document.createElement("option");
+          opt.value = t;
+          opt.textContent = t;
+          bankFilterTopic.appendChild(opt);
+        });
+        if ([...bankFilterTopic.options].some(o => o.value === prev)) bankFilterTopic.value = prev;
+      }
+    }
+
+    function updateBankCountBadge() {
+      const total = (appState.pngQuestions || []).length;
+      const badge = document.getElementById("bankCountBadge");
+      if (badge) badge.textContent = `PNG Bank: ${total} Q${total === 1 ? "" : "s"}`;
+    }
+
+    function updateTierBadges() {
+      const bank = appState.pngQuestions || [];
+      [0, 1].forEach(idx => {
+        const sel = document.getElementById(`topicSelect-${idx}`);
+        const topicVal = sel ? sel.value : "ALL";
+        [10, 20, 30].forEach(pts => {
+          const count = bank.filter(q => q.points === pts && (topicVal === "ALL" || q.topic === topicVal)).length;
+          const span = document.getElementById(`tierCount-${idx}-${pts}`);
+          if (span) span.textContent = `(${count})`;
+        });
+      });
+    }
+
+    // Update tier counts when category dropdown changes
+    document.addEventListener("change", function(e) {
+      if (e.target && (e.target.id === "topicSelect-0" || e.target.id === "topicSelect-1")) {
+        updateTierBadges();
+      }
+    });
+
+    // =========================================================================
+    // WEB AUDIO SOUND EFFECTS & VOICE SYNTHESIS
+    // =========================================================================
+    let audioCtx = null;
+
+    function getAudioCtx() {
+      if (!audioCtx) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (Ctx) audioCtx = new Ctx();
+      }
+      if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playTickSound(freq = 660) {
+      if (!appState.soundEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.045);
+      gain.gain.setValueAtTime(0.14, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.048);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
+    }
+
+    function playCorrectFanfare() {
+      if (!appState.soundEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5];
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.075);
+        gain.gain.setValueAtTime(0.18, ctx.currentTime + idx * 0.075);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.075 + 0.36);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + idx * 0.075);
+        osc.stop(ctx.currentTime + idx * 0.075 + 0.38);
+      });
+    }
+
+    function playWrongBuzz() {
+      if (!appState.soundEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(195, ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(125, ctx.currentTime + 0.32);
+      gain.gain.setValueAtTime(0.16, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.34);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    }
+
+    function playStealAlertSound() {
+      if (!appState.soundEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      [587.33, 880].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.11);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.11);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.11 + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + i * 0.11);
+        osc.stop(ctx.currentTime + i * 0.11 + 0.26);
+      });
+    }
+
+    function speakText(text) {
+      if (!appState.soundEnabled || !("speechSynthesis" in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.rate = 0.98;
+        utter.pitch = 1.04;
+        window.speechSynthesis.speak(utter);
+      } catch (e) {}
+    }
+
+    // =========================================================================
+    // CONFETTI & FLOATING SCORE ANIMATIONS
+    // =========================================================================
+    let confettiParticles = [];
+    let confettiFrame = null;
+
+    function launchConfetti(primaryHex = "#1B2452") {
+      const canvas = document.getElementById("confettiCanvas");
+      if (!canvas) return;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const colors = [primaryHex, "#F59E0B", "#10B981", "#3B82F6", "#EC4899", "#8B5CF6"];
+
+      for (let i = 0; i < 85; i++) {
+        confettiParticles.push({
+          x: window.innerWidth * (0.2 + Math.random() * 0.6),
+          y: window.innerHeight * 0.35,
+          vx: (Math.random() - 0.5) * 14,
+          vy: -6 - Math.random() * 10,
+          size: 6 + Math.random() * 6,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rot: Math.random() * 360,
+          vRot: (Math.random() - 0.5) * 14,
+          life: 95
+        });
+      }
+
+      if (!confettiFrame) {
+        const ctx = canvas.getContext("2d");
+        function step() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          confettiParticles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.35;
+            p.rot += p.vRot;
+            p.life -= 1;
+
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.rot * Math.PI) / 180);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+            ctx.restore();
+          });
+          confettiParticles = confettiParticles.filter(p => p.life > 0);
+          if (confettiParticles.length > 0) {
+            confettiFrame = requestAnimationFrame(step);
+          } else {
+            confettiFrame = null;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+          }
+        }
+        confettiFrame = requestAnimationFrame(step);
+      }
+    }
+
+    function triggerFloatingPoints(classIdx, text) {
+      const anchor = document.getElementById(`scoreFloatAnchor-${classIdx}`);
+      if (!anchor) return;
+      const badge = document.createElement("div");
+      badge.className = "px-3 py-1 rounded-full bg-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-lg whitespace-nowrap animate-float-up";
+      badge.textContent = text;
+      anchor.appendChild(badge);
+      setTimeout(() => badge.remove(), 1300);
+
+      const scoreEl = document.getElementById(`scoreDisplay-${classIdx}`);
+      if (scoreEl) {
+        scoreEl.classList.remove("animate-score");
+        void scoreEl.offsetWidth;
+        scoreEl.classList.add("animate-score");
+      }
+    }
+
+    // =========================================================================
+    // SINGLE SHARED COMPETITION TIMER (RUNS WHEN BOTH TEAMS HAVE PNGs)
+    // =========================================================================
+    function formatSecondsMs(ms) {
+      const clamped = Math.max(0, ms);
+      const totalSec = Math.floor(clamped / 1000);
+      const mins = Math.floor(totalSec / 60);
+      const secs = totalSec % 60;
+      const tenths = Math.floor((clamped % 1000) / 100);
+      return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}.${tenths}`;
+    }
+
+    function bothTeamsHaveQuestions() {
+      return Boolean(appState.classes[0].currentQuestion && appState.classes[1].currentQuestion);
+    }
+
+    function setSharedTimerDuration(seconds) {
+      pauseSharedTimer();
+      appState.sharedTimer.durationSec = seconds;
+      appState.sharedTimer.remainingMs = seconds * 1000;
+      appState.sharedTimer.running = false;
+      lastSharedLowBeepSec = null;
+      document.getElementById("customRoundSeconds").value = seconds;
+      saveAllState();
+      renderSharedTimerUI();
+      showToast(`Shared round timer set to ${seconds} seconds.`, "info");
+    }
+
+    function applyCustomSharedDuration() {
+      const val = parseInt(document.getElementById("customRoundSeconds").value, 10);
+      if (isNaN(val) || val < 5 || val > 900) {
+        showToast("Enter a round time between 5 and 900 seconds.", "warning");
+        return;
+      }
+      setSharedTimerDuration(val);
+    }
+
+    function startSharedTimer() {
+      if (sharedTimerInterval) return;
+      if (appState.sharedTimer.remainingMs <= 0) {
+        appState.sharedTimer.remainingMs = appState.sharedTimer.durationSec * 1000;
+      }
+      appState.sharedTimer.running = true;
+      sharedLastTick = performance.now();
+
+      sharedTimerInterval = setInterval(() => {
+        const st = appState.sharedTimer;
+        if (!st.running) return;
+
+        const now = performance.now();
+        const delta = now - sharedLastTick;
+        sharedLastTick = now;
+
+        st.remainingMs = Math.max(0, st.remainingMs - delta);
+
+        if (st.remainingMs > 0 && st.remainingMs <= 5000) {
+          const secCeil = Math.ceil(st.remainingMs / 1000);
+          if (lastSharedLowBeepSec !== secCeil) {
+            lastSharedLowBeepSec = secCeil;
+            playTickSound(880);
+          }
+        }
+
+        if (st.remainingMs <= 0) {
+          st.remainingMs = 0;
+          st.running = false;
+          pauseSharedTimer();
+          playWrongBuzz();
+          showToast("⏰ Shared round timer has ended!", "error");
+        }
+
+        renderSharedTimerUI();
+      }, 100);
+
+      renderSharedTimerUI();
+    }
+
+    function pauseSharedTimer() {
+      appState.sharedTimer.running = false;
+      if (sharedTimerInterval) {
+        clearInterval(sharedTimerInterval);
+        sharedTimerInterval = null;
+      }
+      sharedLastTick = null;
+      renderSharedTimerUI();
+    }
+
+    function toggleSharedTimer() {
+      if (appState.sharedTimer.running) pauseSharedTimer();
+      else startSharedTimer();
+    }
+
+    function resetSharedTimer() {
+      pauseSharedTimer();
+      appState.sharedTimer.remainingMs = appState.sharedTimer.durationSec * 1000;
+      lastSharedLowBeepSec = null;
+      saveAllState();
+      renderSharedTimerUI();
+    }
+
+    function evaluateSharedTimerAutoStart() {
+      if (bothTeamsHaveQuestions()) {
+        appState.sharedTimer.remainingMs = appState.sharedTimer.durationSec * 1000;
+        lastSharedLowBeepSec = null;
+        startSharedTimer();
+        showToast("⏱️ Both teams have PNG questions — Shared Timer STARTED!", "success");
+      } else {
+        renderSharedTimerUI();
+      }
+    }
+
+    function renderSharedTimerUI() {
+      const st = appState.sharedTimer;
+      const bothReady = bothTeamsHaveQuestions();
+
+      const disp = document.getElementById("sharedTimerDisplay");
+      const pill = document.getElementById("sharedTimerStatusPill");
+      const startBtn = document.getElementById("sharedStartPauseBtn");
+      const startIcon = document.getElementById("sharedStartIcon");
+      const startText = document.getElementById("sharedStartText");
+
+      if (disp) {
+        disp.textContent = formatSecondsMs(st.remainingMs);
+        if (st.remainingMs === 0) {
+          disp.className = "font-mono-code text-3xl sm:text-4xl font-black tracking-tight px-4 py-1 rounded-xl bg-red-950 border-2 border-[#D9383A] text-red-400 tabular-nums";
+        } else if (st.remainingMs <= 10000 && st.running) {
+          disp.className = "font-mono-code text-3xl sm:text-4xl font-black tracking-tight px-4 py-1 rounded-xl bg-slate-950 border-2 border-amber-400 text-amber-400 tabular-nums animate-pulse";
+        } else if (st.running) {
+          disp.className = "font-mono-code text-3xl sm:text-4xl font-black tracking-tight px-4 py-1 rounded-xl bg-slate-950 border-2 border-emerald-500 text-emerald-400 tabular-nums";
+        } else {
+          disp.className = "font-mono-code text-3xl sm:text-4xl font-black tracking-tight px-4 py-1 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 tabular-nums";
+        }
+      }
+
+      if (pill) {
+        if (stealState) {
+          pill.textContent = "PAUSED — STEAL IN PROGRESS";
+          pill.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950";
+        } else if (st.running) {
+          pill.textContent = "● LIVE — BOTH TEAMS ACTIVE";
+          pill.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 animate-pulse";
+        } else if (bothReady) {
+          pill.textContent = "READY (PAUSED)";
+          pill.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950";
+        } else {
+          pill.textContent = "WAITING FOR BOTH PNG QUESTIONS";
+          pill.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-slate-700 text-slate-200";
+        }
+      }
+
+      if (startBtn) {
+        if (st.running) {
+          startBtn.className = "px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm shadow-xs transition flex items-center gap-1";
+          startIcon.textContent = "⏸";
+          startText.textContent = "Pause";
+        } else {
+          startBtn.className = "px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm shadow-xs transition flex items-center gap-1";
+          startIcon.textContent = "▶";
+          startText.textContent = "Start";
+        }
+      }
+
+      [0, 1].forEach(idx => {
+        const cls = appState.classes[idx];
+        const badge = document.getElementById(`readinessBadge-${idx}`);
+        const label = document.getElementById(`readinessLabel-${idx}`);
+        if (!badge || !label) return;
+        const dot = badge.querySelector("span:first-child");
+        if (cls.currentQuestion) {
+          dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+          label.textContent = `${cls.name}: PNG Ready (${cls.currentQuestion.points} pts)`;
+          label.className = "text-emerald-300 font-bold";
+        } else {
+          dot.className = "w-2 h-2 rounded-full bg-slate-500";
+          label.textContent = `${cls.name}: Pick a PNG tier`;
+          label.className = "text-slate-400 font-semibold";
+        }
+      });
+    }
+
+    // =========================================================================
+    // CLASS NAMES, ROSTERS & TWO EMPTY FORTUNE WHEELS
+    // =========================================================================
+    function updateClassName(classIdx, rawName) {
+      const clean = (rawName || "").trim() || `Class ${classIdx + 1}`;
+      appState.classes[classIdx].name = clean;
+      const input = document.getElementById(`className-${classIdx}`);
+      if (input) input.value = clean;
+      saveAllState();
+      renderClassUI(classIdx);
+      renderSharedTimerUI();
+    }
+
+    function toggleRosterDrawer(classIdx) {
+      const drawer = document.getElementById(`rosterDrawer-${classIdx}`);
+      if (!drawer) return;
+      drawer.classList.toggle("hidden");
+      drawer.classList.toggle("flex");
+    }
+
+    function addQuickStudent(classIdx) {
+      const input = document.getElementById(`quickStudentInput-${classIdx}`);
+      const name = (input.value || "").trim();
+      if (!name) return;
+      const cls = appState.classes[classIdx];
+      if (!cls.students.some(s => s.toLowerCase() === name.toLowerCase())) {
+        cls.students.push(name);
+        input.value = "";
+        saveAllState();
+        renderClassUI(classIdx);
+        showToast(`Added ${name} to ${cls.name}'s wheel`, "success");
+      } else {
+        showToast(`${name} is already on ${cls.name}'s wheel.`, "warning");
+      }
+    }
+
+    function addBulkStudents(classIdx) {
+      const textarea = document.getElementById(`bulkStudentInput-${classIdx}`);
+      const names = (textarea.value || "")
+        .split(/[\n,]+/)
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      if (names.length === 0) {
+        showToast("Enter at least one student name.", "warning");
+        return;
+      }
+
+      const cls = appState.classes[classIdx];
+      let added = 0;
+      names.forEach(n => {
+        if (!cls.students.some(s => s.toLowerCase() === n.toLowerCase())) {
+          cls.students.push(n);
+          added++;
+        }
+      });
+
+      textarea.value = "";
+      saveAllState();
+      renderClassUI(classIdx);
+      showToast(`Added ${added} student(s) to ${cls.name}`, "success");
+    }
+
+    function removeStudentFromWheel(classIdx, sIdx) {
+      if (isSpinning[classIdx]) return;
+      appState.classes[classIdx].students.splice(sIdx, 1);
+      saveAllState();
+      renderClassUI(classIdx);
+    }
+
+    function restoreRemovedStudents(classIdx) {
+      if (isSpinning[classIdx]) return;
+      const cls = appState.classes[classIdx];
+      if (cls.removedStudents.length === 0) {
+        showToast("No removed students to restore.", "info");
+        return;
+      }
+      cls.students.push(...cls.removedStudents);
+      const count = cls.removedStudents.length;
+      cls.removedStudents = [];
+      saveAllState();
+      renderClassUI(classIdx);
+      showToast(`Restored ${count} student(s) to ${cls.name}`, "success");
+    }
+
+    function clearClassRoster(classIdx) {
+      if (isSpinning[classIdx]) return;
+      const cls = appState.classes[classIdx];
+      cls.students = [];
+      cls.removedStudents = [];
+      cls.selectedStudent = null;
+      saveAllState();
+      renderClassUI(classIdx);
+    }
+
+    function fitAndDrawWheel(classIdx) {
+      const container = document.getElementById(`wheelContainer-${classIdx}`);
+      const stage = document.getElementById(`wheelStage-${classIdx}`);
+      const canvas = document.getElementById(`wheelCanvas-${classIdx}`);
+      if (!container || !stage || !canvas) return;
+
+      const availW = container.clientWidth - 12;
+      const availH = container.clientHeight - 8;
+      const size = Math.max(140, Math.min(250, availW, availH > 120 ? availH : 205));
+
+      stage.style.width = `${size}px`;
+      stage.style.height = `${size}px`;
+
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = size * dpr;
+      canvas.height = size * dpr;
+      canvas.style.width = `${size}px`;
+      canvas.style.height = `${size}px`;
+
+      const ctx = canvas.getContext("2d");
+      ctx.scale(dpr, dpr);
+
+      const center = size / 2;
+      const radius = center - 4;
+      const cls = appState.classes[classIdx];
+      const students = cls.students;
+
+      ctx.clearRect(0, 0, size, size);
+
+      if (!students || students.length === 0) {
+        ctx.beginPath();
+        ctx.arc(center, center, radius, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([6, 5]);
+        ctx.strokeStyle = "#cbd5e1";
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.beginPath();
+        ctx.arc(center, center, 22, 0, Math.PI * 2);
+        ctx.fillStyle = classIdx === 0 ? "#1B2452" : "#D9383A";
+        ctx.fill();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "800 10px Inter, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("EMPTY", center, center);
+
+        ctx.fillStyle = "#64748b";
+        ctx.font = "700 11px Inter, sans-serif";
+        ctx.fillText("Add student names", center, center - 40);
+        ctx.fillText("to spin wheel", center, center + 40);
+        return;
+      }
+
+      const num = students.length;
+      const arc = (Math.PI * 2) / num;
+      const palette = WHEEL_PALETTES[classIdx];
+      const baseAngle = cls.wheelAngle || 0;
+
+      for (let i = 0; i < num; i++) {
+        const start = baseAngle + i * arc;
+        const end = start + arc;
+
+        ctx.beginPath();
+        ctx.moveTo(center, center);
+        ctx.arc(center, center, radius, start, end);
+        ctx.closePath();
+
+        let cIdx = i % palette.length;
+        if (i === num - 1 && num > 1 && cIdx === 0) cIdx = 1;
+        ctx.fillStyle = palette[cIdx];
+        ctx.fill();
+
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = "#ffffff";
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(center, center);
+        ctx.rotate(start + arc / 2);
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#ffffff";
+
+        const fontSize = num <= 8 ? 13 : num <= 15 ? 11 : 9;
+        ctx.font = `700 ${fontSize}px Inter, sans-serif`;
+
+        let label = students[i];
+        if (label.length > 13) label = label.substring(0, 12) + "…";
+        ctx.fillText(label, radius - 12, 0);
+        ctx.restore();
+      }
+
+      ctx.beginPath();
+      ctx.arc(center, center, 16, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = classIdx === 0 ? "#1B2452" : "#D9383A";
+      ctx.stroke();
+    }
+
+    function spinWheel(classIdx) {
+      if (isSpinning[classIdx]) return;
+      const cls = appState.classes[classIdx];
+      if (!cls.students || cls.students.length === 0) {
+        showToast(`Add student names to ${cls.name}'s wheel first!`, "warning");
+        return;
+      }
+
+      isSpinning[classIdx] = true;
+      document.getElementById(`spinBtn-${classIdx}`).disabled = true;
+
+      const startAngle = cls.wheelAngle || 0;
+      const totalRot = (6 + Math.random() * 3) * Math.PI * 2 + Math.random() * Math.PI * 2;
+      const duration = 3800;
+      const startTime = performance.now();
+      const arcSize = (Math.PI * 2) / cls.students.length;
+      let lastSlice = -1;
+
+      function step(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 4);
+        cls.wheelAngle = (startAngle + totalRot * ease) % (Math.PI * 2);
+
+        const pointerAngle = ((Math.PI * 1.5 - cls.wheelAngle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+        const sliceIdx = Math.floor(pointerAngle / arcSize);
+        if (sliceIdx !== lastSlice) {
+          playTickSound(640);
+          lastSlice = sliceIdx;
+        }
+
+        fitAndDrawWheel(classIdx);
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          const finalPointer = ((Math.PI * 1.5 - cls.wheelAngle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+          const winIdx = Math.floor(finalPointer / arcSize) % cls.students.length;
+          const winner = cls.students[winIdx];
+
+          cls.selectedStudent = winner;
+          cls.students.splice(winIdx, 1);
+          cls.removedStudents.push(winner);
+
+          speakText(`${winner} from ${cls.name}, your turn!`);
+          playCorrectFanfare();
+
+          isSpinning[classIdx] = false;
+          saveAllState();
+          renderClassUI(classIdx);
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    // =========================================================================
+    // PNG QUESTION SELECTION, ANSWER VERIFICATION & STEAL WORKFLOW
+    // =========================================================================
+    function normalizeAnswerString(str) {
+      return String(str || "")
+        .toLowerCase()
+        .replace(/²/g, "^2")
+        .replace(/³/g, "^3")
+        .replace(/×/g, "*")
+        .replace(/÷/g, "/")
+        .replace(/\$/g, "")
+        .replace(/\s+/g, "")
+        .trim();
+    }
+
+    function isAnswerMatch(userInput, questionObj) {
+      const cleanUser = normalizeAnswerString(userInput);
+      if (!cleanUser) return false;
+      const validAnswers = [questionObj.a, ...(questionObj.alts || [])].filter(Boolean);
+      for (const ans of validAnswers) {
+        const cleanAns = normalizeAnswerString(ans);
+        if (cleanUser === cleanAns) return true;
+        if (cleanAns.includes("+") && !cleanAns.includes("-") && !cleanAns.includes("(") && !cleanAns.includes("/")) {
+          if (cleanAns.split("+").sort().join("+") === cleanUser.split("+").sort().join("+")) return true;
+        }
+      }
+      return false;
+    }
+
+    function selectPngQuestion(classIdx, points) {
+      const cls = appState.classes[classIdx];
+      const topicVal = document.getElementById(`topicSelect-${classIdx}`).value;
+      const bank = appState.pngQuestions || [];
+
+      if (bank.length === 0) {
+        showToast("Your PNG Question Bank is currently empty! Click '+ Add PNG Question' to upload PNGs.", "warning");
+        openAddPngModal("single");
+        return;
+      }
+
+      let candidates = bank.filter(q => {
+        const matchPts = q.points === points;
+        const matchTopic = topicVal === "ALL" || q.topic === topicVal;
+        return matchPts && matchTopic;
+      });
+
+      if (candidates.length === 0) {
+        const tierLabel = points === 10 ? "Easy (10)" : points === 20 ? "Medium (20)" : "Hard (30)";
+        showToast(`No PNG questions stored for ${tierLabel} in this category yet.`, "warning");
+        return;
+      }
+
+      let unused = candidates.filter(q => !appState.usedQuestionIds.includes(q.id));
+      if (unused.length === 0) {
+        const ids = new Set(candidates.map(c => c.id));
+        appState.usedQuestionIds = appState.usedQuestionIds.filter(id => !ids.has(id));
+        unused = candidates;
+        showToast("All PNGs in this tier were used — cycling them again!", "info");
+      }
+
+      const chosen = unused[Math.floor(Math.random() * unused.length)];
+      appState.usedQuestionIds.push(chosen.id);
+
+      cls.currentQuestion = chosen;
+      cls.answerRevealed = false;
+      cls.studentAnswerDraft = "";
+
+      saveAllState();
+      renderClassUI(classIdx);
+      evaluateSharedTimerAutoStart();
+    }
+
+    function updateDraftAnswer(classIdx, val) {
+      appState.classes[classIdx].studentAnswerDraft = val;
+    }
+
+    function submitTypedAnswer(classIdx) {
+      const cls = appState.classes[classIdx];
+      if (!cls.currentQuestion) return;
+
+      const draft = (cls.studentAnswerDraft || "").trim();
+      if (!draft) {
+        showToast("Type an answer first, or use Correct / Wrong buttons.", "warning");
+        return;
+      }
+
+      if (!cls.currentQuestion.a) {
+        showToast("No text answer key was set for this PNG — teacher can award Correct or Wrong below.", "info");
+        return;
+      }
+
+      if (isAnswerMatch(draft, cls.currentQuestion)) {
+        handleTeamAnsweredCorrect(classIdx);
+      } else {
+        handleTeamAnsweredWrong(classIdx);
+      }
+    }
+
+    function handleTeamAnsweredCorrect(classIdx) {
+      const cls = appState.classes[classIdx];
+      if (!cls.currentQuestion) return;
+
+      const pts = cls.currentQuestion.points;
+      cls.score += pts;
+      cls.solved += 1;
+
+      playCorrectFanfare();
+      launchConfetti(classIdx === 0 ? "#1B2452" : "#D9383A");
+      triggerFloatingPoints(classIdx, `+${pts} PTS! ⭐`);
+      showToast(`🎉 ${cls.name} solved it! +${pts} points!`, "success");
+
+      cls.currentQuestion = null;
+      cls.answerRevealed = false;
+      cls.studentAnswerDraft = "";
+
+      if (!bothTeamsHaveQuestions()) pauseSharedTimer();
+
+      saveAllState();
+      renderClassUI(classIdx);
+      renderSharedTimerUI();
+    }
+
+    function handleTeamAnsweredWrong(missedClassIdx) {
+      const missedClass = appState.classes[missedClassIdx];
+      if (!missedClass.currentQuestion) return;
+
+      const stealingClassIdx = missedClassIdx === 0 ? 1 : 0;
+      const questionCopy = JSON.parse(JSON.stringify(missedClass.currentQuestion));
+
+      pauseSharedTimer();
+      playWrongBuzz();
+
+      const arenaEl = document.getElementById(`arena-${missedClassIdx}`);
+      if (arenaEl) {
+        arenaEl.classList.remove("animate-wobble");
+        void arenaEl.offsetWidth;
+        arenaEl.classList.add("animate-wobble");
+      }
+
+      openStealOpportunityModal(missedClassIdx, stealingClassIdx, questionCopy);
+    }
+
+    function toggleAnswer(classIdx) {
+      const cls = appState.classes[classIdx];
+      if (!cls.currentQuestion) return;
+      cls.answerRevealed = !cls.answerRevealed;
+      renderQuestionArea(classIdx);
+    }
+
+    function removeLiveQuestion(classIdx) {
+      const cls = appState.classes[classIdx];
+      if (!cls.currentQuestion) return;
+      const qId = cls.currentQuestion.id;
+
+      appState.pngQuestions = (appState.pngQuestions || []).filter(q => q.id !== qId);
+      cls.currentQuestion = null;
+      if (!bothTeamsHaveQuestions()) pauseSharedTimer();
+
+      populateTopicDropdowns();
+      updateBankCountBadge();
+      updateTierBadges();
+      saveAllState();
+      renderClassUI(classIdx);
+      renderSharedTimerUI();
+      showToast("PNG question deleted from bank.", "info");
+    }
+
+    function adjustScore(classIdx, delta) {
+      const cls = appState.classes[classIdx];
+      cls.score = Math.max(0, cls.score + delta);
+      saveAllState();
+      renderClassUI(classIdx);
+    }
+
+    // =========================================================================
+    // STEAL THE POINTS WORKFLOW (5s DECISION -> 30s STEAL COUNTDOWN)
+    // =========================================================================
+    function openStealOpportunityModal(missedClassIdx, stealingClassIdx, questionObj) {
+      clearStealInterval();
+
+      const missedTeam = appState.classes[missedClassIdx];
+      const stealingTeam = appState.classes[stealingClassIdx];
+
+      stealState = {
+        phase: "decision",
+        missedClassIdx,
+        stealingClassIdx,
+        question: questionObj,
+        remainingMs: 5000
+      };
+      lastStealBeepSec = null;
+
+      playStealAlertSound();
+      speakText(`${missedTeam.name} missed! Does ${stealingTeam.name} want to steal for ${questionObj.points} points?`);
+
+      const modal = document.getElementById("stealModal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+
+      document.getElementById("stealPhaseBadge").textContent = "⚡ STEAL OPPORTUNITY (5 SECONDS)";
+      document.getElementById("stealHeadline").textContent = `Does ${stealingTeam.name} want to STEAL?`;
+      document.getElementById("stealTimerLabel").textContent = "DECIDE IN";
+      document.getElementById("stealMissedInfo").textContent = `${missedTeam.name} answered incorrectly!`;
+      document.getElementById("stealPointsBadge").textContent = `WORTH ${questionObj.points} POINTS`;
+      document.getElementById("stealTopicLabel").textContent = `${questionObj.topic || "PNG Question"} • ${questionObj.points} Pts`;
+      document.getElementById("stealQuestionPng").src = questionObj.imageData;
+
+      const decControls = document.getElementById("stealDecisionControls");
+      decControls.classList.remove("hidden");
+      decControls.classList.add("grid");
+
+      const attControls = document.getElementById("stealAttemptControls");
+      attControls.classList.add("hidden");
+      attControls.classList.remove("flex");
+
+      document.getElementById("stealOfficialAnswerBox").classList.add("hidden");
+      document.getElementById("stealAutoFeedback").classList.add("hidden");
+      document.getElementById("stealAnswerInput").value = "";
+      document.getElementById("stealConfirmWinBtn").textContent = `✔ Steal Correct (+${questionObj.points} Pts)`;
+
+      renderStealCountdownDisplay();
+      startStealCountdownLoop();
+      renderSharedTimerUI();
+    }
+
+    function startStealCountdownLoop() {
+      clearStealInterval();
+      stealLastTick = performance.now();
+
+      stealInterval = setInterval(() => {
+        if (!stealState) return;
+        const now = performance.now();
+        const delta = now - stealLastTick;
+        stealLastTick = now;
+
+        stealState.remainingMs = Math.max(0, stealState.remainingMs - delta);
+
+        if (stealState.remainingMs > 0 && stealState.remainingMs <= 5000) {
+          const secCeil = Math.ceil(stealState.remainingMs / 1000);
+          if (lastStealBeepSec !== secCeil) {
+            lastStealBeepSec = secCeil;
+            playTickSound(stealState.phase === "decision" ? 920 : 820);
+          }
+        }
+
+        renderStealCountdownDisplay();
+
+        if (stealState.remainingMs <= 0) {
+          stealState.remainingMs = 0;
+          renderStealCountdownDisplay();
+          clearStealInterval();
+
+          if (stealState.phase === "decision") {
+            declineStealOpportunity(true);
+          } else {
+            resolveStealAttempt(false, true);
+          }
+        }
+      }, 100);
+    }
+
+    function renderStealCountdownDisplay() {
+      if (!stealState) return;
+      const el = document.getElementById("stealCountdownDisplay");
+      if (!el) return;
+      const secs = (stealState.remainingMs / 1000).toFixed(1);
+      el.textContent = `${secs}s`;
+      if (stealState.remainingMs <= 5000) {
+        el.className = "font-mono-code text-3xl sm:text-4xl font-black text-rose-400 tabular-nums leading-none mt-0.5 animate-pulse";
+      } else {
+        el.className = "font-mono-code text-3xl sm:text-4xl font-black text-emerald-400 tabular-nums leading-none mt-0.5";
+      }
+    }
+
+    function acceptStealOpportunity() {
+      if (!stealState || stealState.phase !== "decision") return;
+      clearStealInterval();
+
+      const stealingTeam = appState.classes[stealState.stealingClassIdx];
+      stealState.phase = "stealing";
+      stealState.remainingMs = 30000;
+      lastStealBeepSec = null;
+
+      playStealAlertSound();
+      speakText(`${stealingTeam.name} is stealing! 30 seconds on the clock!`);
+
+      document.getElementById("stealPhaseBadge").textContent = "🔥 STEAL ACTIVE — 30 SECONDS!";
+      document.getElementById("stealHeadline").textContent = `${stealingTeam.name} is Solving for ${stealState.question.points} Pts!`;
+      document.getElementById("stealTimerLabel").textContent = "STEAL TIME";
+
+      const decControls = document.getElementById("stealDecisionControls");
+      decControls.classList.add("hidden");
+      decControls.classList.remove("grid");
+
+      const attControls = document.getElementById("stealAttemptControls");
+      attControls.classList.remove("hidden");
+      attControls.classList.add("flex");
+
+      renderStealCountdownDisplay();
+      startStealCountdownLoop();
+
+      setTimeout(() => {
+        const inp = document.getElementById("stealAnswerInput");
+        if (inp) inp.focus();
+      }, 50);
+    }
+
+    function declineStealOpportunity(timedOut = false) {
+      if (!stealState) return;
+      clearStealInterval();
+
+      const missedIdx = stealState.missedClassIdx;
+      const q = stealState.question;
+
+      playWrongBuzz();
+      const ansInfo = q.a ? ` Answer: ${q.a}` : "";
+      showToast(
+        timedOut ? `⏱️ 5s steal window expired!${ansInfo}` : `Steal passed.${ansInfo}`,
+        "info"
+      );
+
+      appState.classes[missedIdx].currentQuestion = null;
+      appState.classes[missedIdx].studentAnswerDraft = "";
+      closeStealModalCleanup();
+      renderClassUI(missedIdx);
+      renderSharedTimerUI();
+      saveAllState();
+    }
+
+    function verifyStealTypedAnswer() {
+      if (!stealState || stealState.phase !== "stealing") return;
+      const raw = (document.getElementById("stealAnswerInput").value || "").trim();
+      if (!raw) {
+        showToast("Enter the stealing team's answer first.", "warning");
+        return;
+      }
+
+      if (!stealState.question.a) {
+        showToast("No answer key saved on this PNG — teacher can confirm Correct or Failed.", "info");
+        return;
+      }
+
+      if (isAnswerMatch(raw, stealState.question)) {
+        resolveStealAttempt(true);
+      } else {
+        const fb = document.getElementById("stealAutoFeedback");
+        fb.className = "rounded-xl bg-amber-100 border border-amber-300 px-3 py-2 text-xs font-extrabold text-amber-950 block";
+        fb.textContent = `⚠️ "${raw}" did not match "${stealState.question.a}". Teacher can verify or mark Steal Failed.`;
+        playWrongBuzz();
+      }
+    }
+
+    function toggleStealOfficialAnswer() {
+      if (!stealState) return;
+      const box = document.getElementById("stealOfficialAnswerBox");
+      if (box.classList.contains("hidden")) {
+        box.textContent = stealState.question.a
+          ? `Official Answer Key: ${stealState.question.a}`
+          : "No text answer key was entered for this PNG.";
+        box.classList.remove("hidden");
+      } else {
+        box.classList.add("hidden");
+      }
+    }
+
+    function resolveStealAttempt(stealSucceeded, timedOut = false) {
+      if (!stealState) return;
+      clearStealInterval();
+
+      const missedIdx = stealState.missedClassIdx;
+      const stealIdx = stealState.stealingClassIdx;
+      const q = stealState.question;
+      const stealingTeam = appState.classes[stealIdx];
+
+      if (stealSucceeded) {
+        stealingTeam.score += q.points;
+        stealingTeam.solved += 1;
+
+        playCorrectFanfare();
+        launchConfetti(stealIdx === 0 ? "#1B2452" : "#D9383A");
+        triggerFloatingPoints(stealIdx, `⚡ STOLEN +${q.points}!`);
+        speakText(`Brilliant steal by ${stealingTeam.name}! Plus ${q.points} points!`);
+        showToast(`⚡ ${stealingTeam.name} STOLE +${q.points} points!`, "success");
+      } else {
+        playWrongBuzz();
+        const ansInfo = q.a ? ` Answer: ${q.a}` : "";
+        showToast(
+          timedOut ? `⏰ 30s steal time ran out!${ansInfo}` : `Steal unsuccessful.${ansInfo}`,
+          "error"
+        );
+      }
+
+      appState.classes[missedIdx].currentQuestion = null;
+      appState.classes[missedIdx].studentAnswerDraft = "";
+
+      closeStealModalCleanup();
+      renderClassUI(missedIdx);
+      renderClassUI(stealIdx);
+      renderSharedTimerUI();
+      saveAllState();
+    }
+
+    function clearStealInterval() {
+      if (stealInterval) {
+        clearInterval(stealInterval);
+        stealInterval = null;
+      }
+      stealLastTick = null;
+    }
+
+    function closeStealModalCleanup() {
+      clearStealInterval();
+      stealState = null;
+      const modal = document.getElementById("stealModal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    // =========================================================================
+    // RENDER CLASS UI & PNG QUESTION DISPLAY
+    // =========================================================================
+    function renderClassUI(classIdx) {
+      const cls = appState.classes[classIdx];
+
+      document.getElementById(`scoreDisplay-${classIdx}`).textContent = cls.score;
+      document.getElementById(`solvedCount-${classIdx}`).textContent = cls.solved;
+      document.getElementById(`wheelCount-${classIdx}`).textContent = cls.students.length;
+      document.getElementById(`rosterBadgeCount-${classIdx}`).textContent = cls.students.length;
+      document.getElementById(`removedCount-${classIdx}`).textContent = cls.removedStudents.length;
+      document.getElementById(`rosterDrawerTitle-${classIdx}`).textContent = `${cls.name} Roster`;
+      document.getElementById(`spinBtnLabel-${classIdx}`).textContent = cls.name.toUpperCase();
+
+      const spinBtn = document.getElementById(`spinBtn-${classIdx}`);
+      spinBtn.disabled = isSpinning[classIdx] || cls.students.length === 0;
+
+      const banner = document.getElementById(`selectedBanner-${classIdx}`);
+      const nameSpan = document.getElementById(`selectedStudentName-${classIdx}`);
+      if (cls.selectedStudent) {
+        banner.className = classIdx === 0
+          ? "rounded-xl bg-indigo-50 border-2 border-[#1B2452] px-2.5 py-1.5 text-center animate-pop-in"
+          : "rounded-xl bg-red-50 border-2 border-[#D9383A] px-2.5 py-1.5 text-center animate-pop-in";
+        nameSpan.className = classIdx === 0
+          ? "text-sm sm:text-base font-black text-[#1B2452] truncate block"
+          : "text-sm sm:text-base font-black text-[#D9383A] truncate block";
+        nameSpan.textContent = `🎤 ${cls.selectedStudent}`;
+      } else {
+        banner.className = "rounded-xl bg-white border border-dashed border-slate-300 px-2.5 py-1.5 text-center";
+        nameSpan.className = "text-xs sm:text-sm font-black text-slate-400 truncate block";
+        nameSpan.textContent = cls.students.length === 0 ? "Empty wheel — add names below" : "Ready to spin wheel!";
+      }
+
+      const chips = document.getElementById(`studentChips-${classIdx}`);
+      if (cls.students.length === 0) {
+        chips.innerHTML = `<span class="text-[11px] text-slate-400 italic">No students on this wheel yet.</span>`;
+      } else {
+        chips.innerHTML = cls.students
+          .map((st, idx) => `
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 border border-slate-300 text-slate-800">
+              <span>${escapeHtml(st)}</span>
+              <button onclick="removeStudentFromWheel(${classIdx}, ${idx})" class="text-slate-400 hover:text-rose-600 font-black">&times;</button>
+            </span>
+          `)
+          .join("");
+      }
+
+      fitAndDrawWheel(classIdx);
+      renderQuestionArea(classIdx);
+    }
+
+    function renderQuestionArea(classIdx) {
+      const cls = appState.classes[classIdx];
+      const container = document.getElementById(`questionArea-${classIdx}`);
+      const q = cls.currentQuestion;
+      const totalPngs = (appState.pngQuestions || []).length;
+
+      if (!q) {
+        const badgeStyle = classIdx === 0 ? "bg-indigo-50 text-[#1B2452] border-indigo-200" : "bg-red-50 text-[#D9383A] border-red-200";
+        container.innerHTML = `
+          <div class="my-auto text-center py-4 px-3">
+            <div class="w-11 h-11 rounded-2xl ${badgeStyle} border flex items-center justify-center mx-auto mb-2 font-black text-lg">
+              🖼️
+            </div>
+            <p class="text-sm sm:text-base font-extrabold text-slate-700">
+              ${cls.selectedStudent ? `Ready for ${escapeHtml(cls.selectedStudent)}!` : `Choose Points for ${escapeHtml(cls.name)}`}
+            </p>
+            <p class="text-xs text-slate-500 mt-1">
+              ${totalPngs === 0
+                ? `Your PNG bank is empty. Click <strong>+ Add PNG Question</strong> at the top to upload your PNG images!`
+                : `Select <strong>Easy (10)</strong>, <strong>Medium (20)</strong>, or <strong>Hard (30)</strong> above to draw a PNG question.`}
+            </p>
+            ${totalPngs === 0 ? `
+              <button onclick="openAddPngModal('single')" class="mt-3 px-3.5 py-1.5 rounded-xl bg-[#1B2452] hover:bg-[#2b3980] text-white text-xs font-extrabold shadow-xs transition">
+                + Upload Your First PNG Question
+              </button>
+            ` : ""}
+          </div>
+        `;
+        return;
+      }
+
+      const diffBadge =
+        q.points === 10
+          ? `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-800">EASY &bull; 10 PTS</span>`
+          : q.points === 20
+          ? `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-800">MEDIUM &bull; 20 PTS</span>`
+          : `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-rose-100 text-rose-800">HARD &bull; 30 PTS</span>`;
+
+      container.innerHTML = `
+        <div class="animate-pop-in flex flex-col gap-2 flex-1 min-h-0">
+          <div class="flex flex-wrap items-center justify-between gap-1.5 shrink-0">
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-slate-800 text-white truncate max-w-[55%]">
+              ${escapeHtml(q.topic || "PNG Question")}
+            </span>
+            <div class="flex items-center gap-1.5">
+              ${diffBadge}
+              <button onclick="openZoomLightbox('${q.imageData}')" class="px-2 py-0.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 text-[11px] font-extrabold transition" title="Enlarge PNG on classroom screen">
+                🔍 Zoom
+              </button>
+            </div>
+          </div>
+
+          <!-- PNG Question Image Display -->
+          <div onclick="openZoomLightbox('${q.imageData}')" class="flex-1 min-h-[120px] max-h-[210px] bg-slate-50 rounded-2xl p-2 border border-slate-200 flex items-center justify-center cursor-zoom-in overflow-hidden group relative">
+            <img src="${q.imageData}" alt="PNG Question" class="max-h-full max-w-full w-auto h-auto object-contain rounded-lg transition group-hover:scale-[1.01]" />
+          </div>
+
+          <!-- Optional Student Answer Input -->
+          <div class="flex gap-1.5 shrink-0">
+            <input
+              type="text"
+              value="${escapeHtml(cls.studentAnswerDraft || "")}"
+              oninput="updateDraftAnswer(${classIdx}, this.value)"
+              onkeydown="if(event.key==='Enter'){ event.preventDefault(); submitTypedAnswer(${classIdx}); }"
+              placeholder="Type answer (or use teacher buttons below)..."
+              class="flex-1 min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-[#1B2452]"
+            />
+            <button
+              onclick="submitTypedAnswer(${classIdx})"
+              class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold transition shrink-0"
+            >
+              Check
+            </button>
+          </div>
+
+          ${cls.answerRevealed ? `
+            <div class="rounded-xl bg-emerald-50 border-2 border-emerald-400 px-3 py-1.5 text-xs sm:text-sm text-emerald-950 font-extrabold shrink-0">
+              <span class="text-[10px] uppercase tracking-wider text-emerald-700 block">Answer Key</span>
+              ${escapeHtml(q.a || "No text answer key stored for this PNG")}
+            </div>
+          ` : ""}
+        </div>
+
+        <!-- Bottom Teacher Action Bar -->
+        <div class="mt-2 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-1.5 shrink-0">
+          <div class="flex items-center gap-1">
+            <button onclick="toggleAnswer(${classIdx})" class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-slate-200 hover:bg-slate-300 text-slate-800 transition">
+              ${cls.answerRevealed ? "Hide Key" : "👁 Key"}
+            </button>
+            <button onclick="removeLiveQuestion(${classIdx})" class="px-2 py-1.5 rounded-xl text-[11px] font-bold bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-700 transition" title="Delete this PNG from bank">
+              🗑️
+            </button>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <button onclick="handleTeamAnsweredWrong(${classIdx})" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-rose-100 hover:bg-rose-200 text-rose-800 transition" title="Mark wrong & trigger 5s Steal Opportunity for the other team">
+              ✖ Wrong (Steal!)
+            </button>
+            <button onclick="handleTeamAnsweredCorrect(${classIdx})" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition">
+              ✔ Correct (+${q.points})
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // SINGLE & BATCH PNG QUESTION BUILDER HANDLERS
+    // =========================================================================
+    function openAddPngModal(initialTab = "single") {
+      const modal = document.getElementById("addPngModal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      switchPngBuilderTab(initialTab);
+    }
+
+    function closeAddPngModal() {
+      const modal = document.getElementById("addPngModal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function switchPngBuilderTab(tab) {
+      const sTab = document.getElementById("tabSinglePng");
+      const bTab = document.getElementById("tabBatchPng");
+      const sPane = document.getElementById("singlePngPane");
+      const bPane = document.getElementById("batchPngPane");
+
+      if (tab === "single") {
+        sTab.className = "px-4 py-2 rounded-t-xl bg-white text-[#1B2452] font-extrabold text-xs sm:text-sm border-t border-x border-slate-200";
+        bTab.className = "px-4 py-2 rounded-t-xl bg-slate-200/70 text-slate-600 hover:text-slate-900 font-bold text-xs sm:text-sm";
+        sPane.classList.remove("hidden");
+        sPane.classList.add("flex");
+        bPane.classList.add("hidden");
+        bPane.classList.remove("flex");
+      } else {
+        bTab.className = "px-4 py-2 rounded-t-xl bg-white text-[#1B2452] font-extrabold text-xs sm:text-sm border-t border-x border-slate-200";
+        sTab.className = "px-4 py-2 rounded-t-xl bg-slate-200/70 text-slate-600 hover:text-slate-900 font-bold text-xs sm:text-sm";
+        bPane.classList.remove("hidden");
+        bPane.classList.add("flex");
+        sPane.classList.add("hidden");
+        sPane.classList.remove("flex");
+      }
+    }
+
+    function handleDropzoneDragOver(e, elId) {
+      e.preventDefault();
+      const el = document.getElementById(elId);
+      if (el) el.classList.add("dropzone-active");
+    }
+
+    function handleDropzoneDragLeave(e, elId) {
+      e.preventDefault();
+      const el = document.getElementById(elId);
+      if (el) el.classList.remove("dropzone-active");
+    }
+
+    async function handleSinglePngDrop(e) {
+      e.preventDefault();
+      document.getElementById("singlePngDropzone").classList.remove("dropzone-active");
+      const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (!file) return;
+      try {
+        const processed = await processImageFileToCleanPng(file);
+        setSinglePngDraft(processed);
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    async function handleSinglePngFileChange(e) {
+      const input = e.target;
+      const file = input.files && input.files[0];
+      if (!file) return;
+      try {
+        const processed = await processImageFileToCleanPng(file);
+        setSinglePngDraft(processed);
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        input.value = "";
+      }
+    }
+
+    function setSinglePngDraft(processed) {
+      singlePngDraftDataUrl = processed.dataUrl;
+      document.getElementById("singlePngEmptyPrompt").classList.add("hidden");
+      const box = document.getElementById("singlePngPreviewBox");
+      box.classList.remove("hidden");
+      box.classList.add("flex");
+      document.getElementById("singlePngPreviewImg").src = processed.dataUrl;
+      const kb = Math.round((processed.dataUrl.length * 3) / 4 / 1024);
+      document.getElementById("singlePngMetaText").textContent = `${processed.name} (${processed.width}×${processed.height}px • ~${kb} KB)`;
+    }
+
+    function clearSinglePngDraft() {
+      singlePngDraftDataUrl = "";
+      document.getElementById("singlePngEmptyPrompt").classList.remove("hidden");
+      const box = document.getElementById("singlePngPreviewBox");
+      box.classList.add("hidden");
+      box.classList.remove("flex");
+      document.getElementById("singlePngPreviewImg").src = "";
+    }
+
+    function saveSinglePngQuestion(autoLoadClassIdx = null) {
+      if (!singlePngDraftDataUrl) {
+        showToast("Please choose, drop, or paste a PNG image first!", "warning");
+        return;
+      }
+
+      const points = parseInt(document.getElementById("singlePngPoints").value, 10) || 10;
+      const topic = (document.getElementById("singlePngTopic").value || "").trim() || "General Mathematics";
+      const answer = (document.getElementById("singlePngAnswer").value || "").trim();
+      const altsRaw = (document.getElementById("singlePngAlts").value || "").trim();
+      const alts = altsRaw ? altsRaw.split(",").map(s => s.trim()).filter(Boolean) : [];
+
+      const newQuestion = {
+        id: `PNG-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+        points,
+        topic,
+        imageData: singlePngDraftDataUrl,
+        a: answer,
+        alts,
+        createdAt: Date.now()
+      };
+
+      appState.pngQuestions.unshift(newQuestion);
+
+      if (autoLoadClassIdx === 0 || autoLoadClassIdx === 1) {
+        appState.classes[autoLoadClassIdx].currentQuestion = newQuestion;
+        appState.classes[autoLoadClassIdx].answerRevealed = false;
+        appState.classes[autoLoadClassIdx].studentAnswerDraft = "";
+        appState.usedQuestionIds.push(newQuestion.id);
+      }
+
+      saveAllState();
+      populateTopicDropdowns();
+      updateBankCountBadge();
+      updateTierBadges();
+
+      clearSinglePngDraft();
+      document.getElementById("singlePngAnswer").value = "";
+      document.getElementById("singlePngAlts").value = "";
+      closeAddPngModal();
+
+      if (autoLoadClassIdx === 0 || autoLoadClassIdx === 1) {
+        renderClassUI(autoLoadClassIdx);
+        evaluateSharedTimerAutoStart();
+        showToast(`Saved PNG & loaded into ${appState.classes[autoLoadClassIdx].name}!`, "success");
+      } else {
+        showToast(`Saved ${points}-point PNG question permanently!`, "success");
+      }
+    }
+
+    // Batch PNG Queue Handlers
+    async function handleBatchPngFilesChange(e) {
+      const input = e.target;
+      const files = Array.from(input.files || []);
+      if (files.length === 0) return;
+
+      const defaultTier = parseInt(document.getElementById("batchDefaultTier").value, 10) || 10;
+
+      for (const f of files) {
+        try {
+          const processed = await processImageFileToCleanPng(f);
+          batchPngDraftQueue.push({
+            tempId: `B-${Date.now()}-${Math.random()}`,
+            fileName: processed.name,
+            imageData: processed.dataUrl,
+            points: defaultTier,
+            topic: "General Mathematics",
+            a: ""
+          });
+        } catch (err) {
+          console.warn("Skipped file:", f.name, err);
+        }
+      }
+
+      input.value = "";
+      renderBatchPngQueue();
+      showToast(`Added ${files.length} PNG(s) to batch queue.`, "info");
+    }
+
+    function applyDefaultTierToBatch(tierStr) {
+      const pts = parseInt(tierStr, 10) || 10;
+      batchPngDraftQueue.forEach(item => {
+        item.points = pts;
+      });
+      renderBatchPngQueue();
+    }
+
+    function updateBatchItemField(idx, field, val) {
+      if (!batchPngDraftQueue[idx]) return;
+      batchPngDraftQueue[idx][field] = field === "points" ? parseInt(val, 10) : val;
+    }
+
+    function removeBatchQueueItem(idx) {
+      batchPngDraftQueue.splice(idx, 1);
+      renderBatchPngQueue();
+    }
+
+    function clearBatchQueue() {
+      batchPngDraftQueue = [];
+      renderBatchPngQueue();
+    }
+
+    function renderBatchPngQueue() {
+      const list = document.getElementById("batchPngList");
+      document.getElementById("batchQueueCount").textContent = `${batchPngDraftQueue.length} PNG(s) ready`;
+
+      if (batchPngDraftQueue.length === 0) {
+        list.innerHTML = `<p class="text-center text-xs text-slate-400 py-6 font-semibold">No PNG files queued yet.</p>`;
+        return;
+      }
+
+      list.innerHTML = batchPngDraftQueue
+        .map((item, idx) => `
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-2.5 flex flex-wrap sm:flex-nowrap items-center gap-3">
+            <img src="${item.imageData}" alt="Thumb" class="w-16 h-16 object-contain bg-white rounded-xl border border-slate-200 p-1 shrink-0" />
+            <div class="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <select onchange="updateBatchItemField(${idx}, 'points', this.value)" class="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs font-bold text-slate-800">
+                <option value="10" ${item.points === 10 ? "selected" : ""}>Easy — 10 Pts</option>
+                <option value="20" ${item.points === 20 ? "selected" : ""}>Medium — 20 Pts</option>
+                <option value="30" ${item.points === 30 ? "selected" : ""}>Hard — 30 Pts</option>
+              </select>
+              <input
+                type="text"
+                value="${escapeHtml(item.topic)}"
+                oninput="updateBatchItemField(${idx}, 'topic', this.value)"
+                placeholder="Category tag..."
+                class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold"
+              />
+              <input
+                type="text"
+                value="${escapeHtml(item.a)}"
+                oninput="updateBatchItemField(${idx}, 'a', this.value)"
+                placeholder="Official Answer..."
+                class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold"
+              />
+            </div>
+            <button onclick="removeBatchQueueItem(${idx})" class="w-7 h-7 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-700 font-black text-sm shrink-0">&times;</button>
+          </div>
+        `)
+        .join("");
+    }
+
+    function saveAllBatchPngQuestions() {
+      if (batchPngDraftQueue.length === 0) {
+        showToast("Select at least one PNG file first.", "warning");
+        return;
+      }
+
+      const now = Date.now();
+      batchPngDraftQueue.forEach((item, idx) => {
+        appState.pngQuestions.unshift({
+          id: `PNG-${now}-${idx}-${Math.floor(Math.random() * 10000)}`,
+          points: [10, 20, 30].includes(item.points) ? item.points : 10,
+          topic: (item.topic || "").trim() || "General Mathematics",
+          imageData: item.imageData,
+          a: (item.a || "").trim(),
+          alts: [],
+          createdAt: now + idx
+        });
+      });
+
+      const savedCount = batchPngDraftQueue.length;
+      batchPngDraftQueue = [];
+      renderBatchPngQueue();
+
+      saveAllState();
+      populateTopicDropdowns();
+      updateBankCountBadge();
+      updateTierBadges();
+      closeAddPngModal();
+      showToast(`✔ Saved ${savedCount} PNG question(s) permanently to your bank!`, "success");
+    }
+
+    // =========================================================================
+    // PNG QUESTION BANK BROWSER, DELETION & GITHUB PAGES JSON BACKUP
+    // =========================================================================
+    function openBankModal() {
+      populateTopicDropdowns();
+      const modal = document.getElementById("bankModal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      renderBankList();
+    }
+
+    function closeBankModal() {
+      const modal = document.getElementById("bankModal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function getFilteredBankQuestions() {
+      const topicVal = document.getElementById("bankFilterTopic").value;
+      const ptsVal = document.getElementById("bankFilterPoints").value;
+      const searchVal = (document.getElementById("bankSearchInput").value || "").trim().toLowerCase();
+
+      return (appState.pngQuestions || []).filter(q => {
+        const matchTopic = topicVal === "ALL" || q.topic === topicVal;
+        const matchPts = ptsVal === "ALL" || String(q.points) === ptsVal;
+        const matchSearch =
+          !searchVal ||
+          (q.a || "").toLowerCase().includes(searchVal) ||
+          (q.topic || "").toLowerCase().includes(searchVal);
+        return matchTopic && matchPts && matchSearch;
+      });
+    }
+
+    function renderBankList() {
+      const filtered = getFilteredBankQuestions();
+      const total = (appState.pngQuestions || []).length;
+
+      document.getElementById("bankFilteredCount").textContent = `Showing ${filtered.length} of ${total} PNGs`;
+
+      const selectedSet = new Set(appState.selectedBankIds || []);
+      const bulkBtn = document.getElementById("bulkDeleteBtn");
+      if (selectedSet.size > 0) {
+        bulkBtn.classList.remove("hidden");
+        document.getElementById("selectedBankCount").textContent = selectedSet.size;
+      } else {
+        bulkBtn.classList.add("hidden");
+      }
+
+      const container = document.getElementById("bankListContainer");
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-10">
+            <p class="text-slate-400 font-bold text-sm">No PNG questions stored yet.</p>
+            <button onclick="closeBankModal(); openAddPngModal('single');" class="mt-3 px-4 py-2 rounded-xl bg-[#1B2452] text-white text-xs font-extrabold">
+              + Add PNG Question
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered
+        .map(item => {
+          const badge =
+            item.points === 10
+              ? "bg-emerald-100 text-emerald-800"
+              : item.points === 20
+              ? "bg-amber-100 text-amber-800"
+              : "bg-rose-100 text-rose-800";
+          const checked = selectedSet.has(item.id) ? "checked" : "";
+          return `
+            <div class="rounded-2xl border border-slate-200 p-3 bg-slate-50/70 hover:bg-white transition flex items-start gap-3">
+              <input type="checkbox" ${checked} onchange="toggleSingleBankSelect('${escapeHtml(item.id)}', this.checked)" class="mt-1 w-4 h-4 accent-[#1B2452] rounded cursor-pointer" />
+              <img onclick="openZoomLightbox('${item.imageData}')" src="${item.imageData}" alt="PNG Thumbnail" class="w-24 h-20 object-contain bg-white rounded-xl border border-slate-200 p-1 cursor-zoom-in shrink-0" />
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center justify-between gap-1.5 mb-1">
+                  <span class="text-xs font-extrabold text-[#1B2452] truncate">${escapeHtml(item.topic || "PNG Question")}</span>
+                  <span class="px-2 py-0.5 rounded-full text-[11px] font-extrabold ${badge}">${item.points} Pts</span>
+                </div>
+                <p class="text-xs font-extrabold text-emerald-700 truncate">
+                  Answer Key: ${escapeHtml(item.a || "(None entered)")}
+                </p>
+                <div class="mt-2 flex items-center gap-1.5">
+                  <button onclick="loadBankQuestionToClass('${escapeHtml(item.id)}', 0)" class="px-2 py-1 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-[#1B2452] text-[11px] font-bold">
+                    → ${escapeHtml(appState.classes[0].name)}
+                  </button>
+                  <button onclick="loadBankQuestionToClass('${escapeHtml(item.id)}', 1)" class="px-2 py-1 rounded-lg bg-red-100 hover:bg-red-200 text-[#D9383A] text-[11px] font-bold">
+                    → ${escapeHtml(appState.classes[1].name)}
+                  </button>
+                  <button onclick="deleteSingleBankQuestion('${escapeHtml(item.id)}')" class="ml-auto px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-bold">
+                    🗑️ Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    function loadBankQuestionToClass(qId, classIdx) {
+      const q = (appState.pngQuestions || []).find(x => x.id === qId);
+      if (!q) return;
+      appState.classes[classIdx].currentQuestion = q;
+      appState.classes[classIdx].answerRevealed = false;
+      appState.classes[classIdx].studentAnswerDraft = "";
+      saveAllState();
+      renderClassUI(classIdx);
+      closeBankModal();
+      evaluateSharedTimerAutoStart();
+      showToast(`Loaded PNG question into ${appState.classes[classIdx].name}!`, "success");
+    }
+
+    function toggleSingleBankSelect(id, isChecked) {
+      const set = new Set(appState.selectedBankIds || []);
+      if (isChecked) set.add(id);
+      else set.delete(id);
+      appState.selectedBankIds = [...set];
+      renderBankList();
+    }
+
+    function toggleSelectAllFiltered(isChecked) {
+      const filtered = getFilteredBankQuestions();
+      const set = new Set(appState.selectedBankIds || []);
+      filtered.forEach(q => {
+        if (isChecked) set.add(q.id);
+        else set.delete(q.id);
+      });
+      appState.selectedBankIds = [...set];
+      renderBankList();
+    }
+
+    function deleteSingleBankQuestion(id) {
+      appState.pngQuestions = (appState.pngQuestions || []).filter(q => q.id !== id);
+      appState.selectedBankIds = (appState.selectedBankIds || []).filter(x => x !== id);
+      saveAllState();
+      populateTopicDropdowns();
+      updateBankCountBadge();
+      updateTierBadges();
+      renderBankList();
+      showToast("PNG question deleted.", "info");
+    }
+
+    function deleteSelectedBankQuestions() {
+      const toDelete = new Set(appState.selectedBankIds || []);
+      if (toDelete.size === 0) return;
+
+      appState.pngQuestions = (appState.pngQuestions || []).filter(q => !toDelete.has(q.id));
+      const count = toDelete.size;
+      appState.selectedBankIds = [];
+      document.getElementById("bankSelectAllCheckbox").checked = false;
+
+      saveAllState();
+      populateTopicDropdowns();
+      updateBankCountBadge();
+      updateTierBadges();
+      renderBankList();
+      showToast(`Deleted ${count} selected PNG question(s).`, "info");
+    }
+
+    function exportPngBankJSON() {
+      const payload = {
+        school: "Eastlands International School",
+        exportedAt: new Date().toISOString(),
+        pngQuestions: appState.pngQuestions || []
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "eastlands-png-question-bank.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast("Exported PNG question bank JSON!", "success");
+    }
+
+    function importPngBankJSON(event) {
+      const input = event.target;
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          const arr = Array.isArray(parsed) ? parsed : parsed.pngQuestions;
+          if (!Array.isArray(arr)) throw new Error("Invalid PNG bank file");
+          let count = 0;
+          arr.forEach((item, idx) => {
+            if (item && item.imageData) {
+              appState.pngQuestions.unshift({
+                id: item.id || `PNG-${Date.now()}-${idx}`,
+                points: [10, 20, 30].includes(Number(item.points)) ? Number(item.points) : 10,
+                topic: item.topic || "General Mathematics",
+                imageData: item.imageData,
+                a: item.a || "",
+                alts: Array.isArray(item.alts) ? item.alts : [],
+                createdAt: item.createdAt || Date.now() + idx
+              });
+              count++;
+            }
+          });
+          saveAllState();
+          populateTopicDropdowns();
+          updateBankCountBadge();
+          updateTierBadges();
+          renderBankList();
+          showToast(`Imported ${count} PNG question(s) into browser storage!`, "success");
+        } catch (err) {
+          showToast("Could not import JSON file.", "error");
+        } finally {
+          input.value = "";
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // =========================================================================
+    // FULLSCREEN CLASSROOM PNG LIGHTBOX, LOGO & RESET MODAL
+    // =========================================================================
+    function openZoomLightbox(src) {
+      if (!src) return;
+      document.getElementById("zoomLightboxImg").src = src;
+      const modal = document.getElementById("zoomLightboxModal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function closeZoomLightbox() {
+      const modal = document.getElementById("zoomLightboxModal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function handleLogoFallback(imgEl) {
+      imgEl.classList.add("hidden");
+      const fb = document.getElementById("schoolLogoFallback");
+      if (fb) {
+        fb.classList.remove("hidden");
+        fb.classList.add("flex");
+      }
+    }
+
+    function uploadCustomLogo(event) {
+      const input = event.target;
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const dataUrl = e.target.result;
+        const img = document.getElementById("schoolLogoImg");
+        const fb = document.getElementById("schoolLogoFallback");
+        img.src = dataUrl;
+        img.classList.remove("hidden");
+        if (fb) {
+          fb.classList.add("hidden");
+          fb.classList.remove("flex");
+        }
+        try {
+          localStorage.setItem(LS_LOGO_KEY, dataUrl);
+        } catch (err) {}
+        showToast("School logo PNG saved!", "success");
+        input.value = "";
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function toggleSound() {
+      appState.soundEnabled = !appState.soundEnabled;
+      saveAllState();
+      syncSoundUI();
+      if (appState.soundEnabled) playTickSound(700);
+    }
+
+    function syncSoundUI() {
+      const icon = document.getElementById("soundIcon");
+      const label = document.getElementById("soundLabel");
+      if (icon) icon.textContent = appState.soundEnabled ? "🔊" : "🔇";
+      if (label) label.textContent = appState.soundEnabled ? "Audio" : "Muted";
+    }
+
+    function openResetModal() {
+      const modal = document.getElementById("resetModal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function closeResetModal() {
+      const modal = document.getElementById("resetModal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function executeReset(clearAllStudents) {
+      appState.usedQuestionIds = [];
+      closeStealModalCleanup();
+      resetSharedTimer();
+
+      [0, 1].forEach(idx => {
+        const cls = appState.classes[idx];
+        cls.score = 0;
+        cls.solved = 0;
+        cls.selectedStudent = null;
+        cls.currentQuestion = null;
+        cls.answerRevealed = false;
+        cls.studentAnswerDraft = "";
+
+        if (clearAllStudents) {
+          cls.students = [];
+          cls.removedStudents = [];
+        } else {
+          cls.students.push(...cls.removedStudents);
+          cls.removedStudents = [];
+        }
+        renderClassUI(idx);
+      });
+
+      saveAllState();
+      renderSharedTimerUI();
+      closeResetModal();
+      showToast(
+        clearAllStudents
+          ? "Full match reset complete. Your saved PNG bank is intact."
+          : "Scores & timer reset, and spun students restored!",
+        "info"
+      );
+    }
+
+    function showToast(message, type = "info") {
+      const container = document.getElementById("toastContainer");
+      if (!container) return;
+      const toast = document.createElement("div");
+      const styles = {
+        info: "bg-[#1B2452] text-white",
+        success: "bg-emerald-600 text-white",
+        warning: "bg-amber-500 text-slate-950",
+        error: "bg-[#D9383A] text-white"
+      };
+      toast.className = `${styles[type] || styles.info} px-4 py-2 rounded-2xl shadow-xl text-xs sm:text-sm font-extrabold animate-pop-in`;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transition = "opacity 0.3s ease";
+        setTimeout(() => toast.remove(), 300);
+      }, 2800);
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+                </html>
